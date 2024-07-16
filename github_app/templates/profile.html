@@ -1,0 +1,21 @@
+<!-- templates/profile.html -->
+
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+    <div class="profile-container">
+        <h1>{{ profile.github_username }}</h1>
+        <img src="{{ profile.avatar_url }}" alt="Avatar">
+        <p>{{ profile.bio }}</p>
+        <p>{{ profile.location }}</p>
+
+        <h2>Repositories</h2>
+        <ul>
+            {% for repo in repositories %}
+            <li><a href="{% url 'repo_detail' repo.name %}">{{ repo.name }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

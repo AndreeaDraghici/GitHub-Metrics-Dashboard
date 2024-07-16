@@ -1,0 +1,13 @@
+<!-- templates/repo_detail.html -->
+
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Repository Details{% endblock %}
+
+{% block content %}
+    <div class="repo-container">
+        <h1>{{ repo.name }}</h1>
+        <p>{{ repo.description }}</p>
+        <p><a href="{{ repo.html_url }}" target="_blank">See on GitHub</a></p>
+    </div>
+{% endblock %}

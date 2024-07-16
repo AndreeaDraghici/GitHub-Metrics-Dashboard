@@ -1,0 +1,25 @@
+<!-- templates/base.html -->
+
+{% load static %} <!-- Asigură-te că ai acest tag la începutul fișierului -->
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My GitHub App{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+<div class="navbar">
+    <a href="{% url 'register' %}">Register</a>
+    <a href="{% url 'profile' %}">Profile</a>
+    <a href="{% url 'activity_stats' %}">Activity Status</a>
+    <!-- Alte link-uri pentru alte pagini -->
+</div>
+
+<div class="container main-content">
+    {% block content %}
+    {% endblock %}
+</div>
+</body>
+</html>
