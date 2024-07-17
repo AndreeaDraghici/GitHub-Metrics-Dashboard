@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Stats</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+
+{% block content %}
+    <h1>{{ user.username }}'s Activity Statistics</h1>
+
+    <h2>General Metrics</h2>
+    <table>
+        <tr>
+            <th>Metric</th>
+            <th>Value</th>
+        </tr>
+        <tr>
+            <td>Repository Count</td>
+            <td>{{ repo_count }}</td>
+        </tr>
+        <tr>
+            <td>Total Commits</td>
+            <td>{{ total_commits }}</td>
+        </tr>
+        <tr>
+            <td>Total Stars</td>
+            <td>{{ total_stars }}</td>
+        </tr>
+        <tr>
+            <td>Total Forks</td>
+            <td>{{ total_forks }}</td>
+        </tr>
+        <tr>
+            <td>Total Pull Requests</td>
+            <td>{{ total_prs }}</td>
+        </tr>
+        <tr>
+            <td>Merged Pull Requests</td>
+            <td>{{ merged_prs }}</td>
+        </tr>
+        <tr>
+            <td>Total Issues</td>
+            <td>{{ total_issues }}</td>
+        </tr>
+        <tr>
+            <td>Closed Issues</td>
+            <td>{{ closed_issues }}</td>
+        </tr>
+    </table>
+
+    <h2>Repository Details</h2>
+    <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search for repositories..">
+
+    <table id="repoTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Stars</th>
+                <th>Forks</th>
+                <th>Commits</th>
+                <th>Pull Requests</th>
+                <th>Issues</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for repo in repos %}
+            <tr>
+                <td>{{ repo.name }}</td>
+                <td>{{ repo.stargazers_count }}</td>
+                <td>{{ repo.forks_count }}</td>
+                <td>{{ repo.commits_count }}</td>
+                <td>{{ repo.prs_count }}</td>
+                <td>{{ repo.issues_count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        function searchTable() {
+            const input = document.getElementById("searchInput");
+            const filter = input.value.toUpperCase();
+            const table = document.getElementById("repoTable");
+            const trs = table.getElementsByTagName("tr");
+
+            for (let i = 1; i < trs.length; i++) {
+                const tds = trs[i].getElementsByTagName("td");
+                let match = false;
+                for (let j = 0; j < tds.length; j++) {
+                    if (tds[j]) {
+                        if (tds[j].innerText.toUpperCase().indexOf(filter) > -1) {
+                            match = true;
+                            break;
+                        }
+                    }
+                }
+                trs[i].style.display = match ? "" : "none";
+            }
+        }
+    </script>
+{% endblock %}

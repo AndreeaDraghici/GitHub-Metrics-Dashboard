@@ -1,13 +1,12 @@
 import requests
-from django.shortcuts import render, redirect
-from django.conf import settings
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from .models import GitHubProfile, Repository
-from django.contrib.auth import login
-import matplotlib.pyplot as plt
-import io
-import base64
+from django.http import JsonResponse
+from django.shortcuts import render, redirect
+
+from .models import GitHubProfile
+
 # Create your views here.
 
 # Endpoint-uri GitHub API
@@ -16,14 +15,13 @@ PERSONAL_ACCESS_TOKEN = "github_pat_11ARLTXHA0Hdvq9Z20d0Es_3Abvzq52FauyUsFqyIaDI
 
 
 def github_login(request) :
-    return render(request, 'login.html')  # Un template simplu pentru autentificare
+    return render(request, 'login.html')
 
 
 def register(request) :
     if request.method == 'POST' :
         github_username = request.POST.get('github_username')
 
-        # Trimite cerere către API-ul GitHub pentru a obține informațiile utilizatorului
         response = requests.get(
             f"{GITHUB_API_URL}/users/{github_username}",
             headers={'Accept' : 'application/vnd.github.v3+json'}
@@ -32,10 +30,10 @@ def register(request) :
         if response.status_code == 200 :
             user_info = response.json()
 
-            # Verifică dacă utilizatorul există deja în baza de date
+
             user, created = User.objects.get_or_create(username=github_username)
 
-            # Actualizează sau creează profilul GitHub asociat utilizatorului
+
             github_profile, created = GitHubProfile.objects.update_or_create(
                 user=user,
                 defaults={
@@ -48,7 +46,6 @@ def register(request) :
 
             return redirect('profile')
         else :
-            # Tratează cazul în care nu s-a găsit utilizatorul GitHub
             error_message = f"GitHub username '{github_username}' not found."
             context = {'error_message' : error_message}
             return render(request, 'register.html', context)
@@ -57,7 +54,6 @@ def register(request) :
 
 
 def github_callback(request) :
-    # Folosim token-ul direct, deci această funcție poate fi simplificată
     user_info = requests.get(
         f"{GITHUB_API_URL}/user",
         headers={'Authorization' : f'token {PERSONAL_ACCESS_TOKEN}'}
@@ -108,7 +104,7 @@ def repo_detail(request, repo_name) :
 
 
 @login_required
-def activity_stats(request) :
+def get_activity_stats(request) :
     github_profile = request.user.githubprofile
     repos = requests.get(
         f"{GITHUB_API_URL}/user/repos",
@@ -117,32 +113,88 @@ def activity_stats(request) :
 
     commit_counts = []
     languages = {}
-    repo_names = []
 
     for repo in repos :
         repo_name = repo['name']
-        repo_names.append(repo_name)
-
         commits = requests.get(
             f"{GITHUB_API_URL}/repos/{github_profile.github_username}/{repo_name}/commits",
             headers={'Authorization' : f'token {PERSONAL_ACCESS_TOKEN}'}
         ).json()
-        commit_counts.append(len(commits))
+        commit_counts.append({'repo' : repo_name, 'commits' : len(commits)})
 
         lang = repo['language']
         if lang :
             languages[lang] = languages.get(lang, 0) + 1
 
-    # Sort languages by usage
-    languages = dict(sorted(languages.items(), key=lambda item : item[1], reverse=True))
-    lang_names = list(languages.keys())
-    lang_counts = list(languages.values())
+    languages = [{'language' : lang, 'count' : count} for lang, count in languages.items()]
 
-    context = {
-        'profile' : github_profile,
-        'repo_names' : repo_names,
-        'commit_counts' : commit_counts,
-        'lang_names' : lang_names,
-        'lang_counts' : lang_counts
+    return JsonResponse({'commit_counts' : commit_counts, 'languages' : languages})
+
+
+@login_required
+def activity_stats_page(request) :
+    github_username = request.user.githubprofile.github_username
+    headers = {'Authorization' : f'token {PERSONAL_ACCESS_TOKEN}'}
+
+    # Fetch repositories
+    repos_response = requests.get(f'https://api.github.com/users/{github_username}/repos', headers=headers)
+    repos_data = repos_response.json()
+
+    # Metrics initialization
+    total_commits = 0
+    total_stars = 0
+    total_forks = 0
+    pull_requests = []
+    issues = []
+
+    for repo in repos_data :
+        repo_name = repo['name']
+        total_stars += repo['stargazers_count']
+        total_forks += repo['forks_count']
+
+        # Fetch commits count
+        commits_response = requests.get(f'https://api.github.com/repos/{github_username}/{repo_name}/commits',
+                                        headers=headers)
+        commits_data = commits_response.json()
+        commits_count = len(commits_data)
+        total_commits += commits_count
+        repo['commits_count'] = commits_count
+
+        # Fetch pull requests count
+        prs_response = requests.get(f'https://api.github.com/repos/{github_username}/{repo_name}/pulls?state=all',
+                                    headers=headers)
+        prs_data = prs_response.json()
+        prs_count = len(prs_data)
+        pull_requests.extend(prs_data)
+        repo['prs_count'] = prs_count
+
+        # Fetch issues count
+        issues_response = requests.get(f'https://api.github.com/repos/{github_username}/{repo_name}/issues?state=all',
+                                       headers=headers)
+        issues_data = issues_response.json()
+        issues_count = len(issues_data)
+        issues.extend(issues_data)
+        repo['issues_count'] = issues_count
+
+    # Process pull requests
+    total_prs = len(pull_requests)
+    merged_prs = sum(1 for pr in pull_requests if pr['merged_at'])
+
+    # Process issues
+    total_issues = len(issues)
+    closed_issues = sum(1 for issue in issues if issue['state'] == 'closed')
+
+    stats = {
+        'repo_count' : len(repos_data),
+        'total_commits' : total_commits,
+        'total_stars' : total_stars,
+        'total_forks' : total_forks,
+        'total_prs' : total_prs,
+        'merged_prs' : merged_prs,
+        'total_issues' : total_issues,
+        'closed_issues' : closed_issues,
+        'repos' : repos_data
     }
-    return render(request, 'activity_stats.html', context)
+
+    # Render the template with the stats
+    return render(request, 'activity_stats_page.html', stats)

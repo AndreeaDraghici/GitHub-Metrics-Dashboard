@@ -1,13 +1,65 @@
-<!-- templates/repo_detail.html -->
-
 {% extends 'base.html' %}
 {% load static %}
+
 {% block title %}Repository Details{% endblock %}
 
 {% block content %}
-    <div class="repo-container">
-        <h1>{{ repo.name }}</h1>
-        <p>{{ repo.description }}</p>
-        <p><a href="{{ repo.html_url }}" target="_blank">See on GitHub</a></p>
+    <div class="repo-detail-container">
+        <h1>Repository: {{ repo.name }}</h1>
+        <table border="1">
+            <tr>
+                <th>Attribute</th>
+                <th>Value</th>
+            </tr>
+            <tr>
+                <td>Name</td>
+                <td>{{ repo.name }}</td>
+            </tr>
+            <tr>
+                <td>Description</td>
+                <td>{{ repo.description }}</td>
+            </tr>
+            <tr>
+                <td>Stars</td>
+                <td>{{ repo.stargazers_count }}</td>
+            </tr>
+            <tr>
+                <td>Forks</td>
+                <td>{{ repo.forks_count }}</td>
+            </tr>
+            <tr>
+                <td>Open Issues</td>
+                <td>{{ repo.open_issues_count }}</td>
+            </tr>
+            <tr>
+                <td>Language</td>
+                <td>{{ repo.language }}</td>
+            </tr>
+            <tr>
+                <td>Created At</td>
+                <td>{{ repo.created_at }}</td>
+            </tr>
+            <tr>
+                <td>Updated At</td>
+                <td>{{ repo.updated_at }}</td>
+            </tr>
+            <tr>
+                <td>Pushed At</td>
+                <td>{{ repo.pushed_at }}</td>
+            </tr>
+            <tr>
+                <td>Clone URL</td>
+                <td><a href="{{ repo.clone_url }}">{{ repo.clone_url }}</a></td>
+            </tr>
+            <tr>
+                <td>Homepage</td>
+                <td><a href="{{ repo.homepage }}">{{ repo.homepage }}</a></td>
+            </tr>
+            <tr>
+                <td>Default Branch</td>
+                <td>{{ repo.default_branch }}</td>
+            </tr>
+        </table>
+        <a href="{% url 'profile' %}">Back to Profile</a>
     </div>
 {% endblock %}
