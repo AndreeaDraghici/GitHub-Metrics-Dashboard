@@ -1,0 +1,21 @@
+<!-- user_list.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User List</title>
+</head>
+<body>
+    <h1>User List</h1>
+    <ul>
+        {% for user in users %}
+            <li>
+                <strong>{{ user.username }}</strong>
+                 <a href="{% url 'profile' user.username %}">View Profile</a>
+                <a href="{% url 'activity_stats' user.username %}">View Activity Stats</a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

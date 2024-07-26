@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
-
+from .decorators import require_github_username
 from .models import GitHubProfile
 
 # Create your views here.
@@ -18,37 +18,17 @@ def github_login(request) :
     return render(request, 'login.html')
 
 
+@login_required
 def register(request) :
     if request.method == 'POST' :
-        github_username = request.POST.get('github_username')
-
-        response = requests.get(
-            f"{GITHUB_API_URL}/users/{github_username}",
-            headers={'Accept' : 'application/vnd.github.v3+json'}
-        )
-
-        if response.status_code == 200 :
-            user_info = response.json()
-
-
-            user, created = User.objects.get_or_create(username=github_username)
-
-
-            github_profile, created = GitHubProfile.objects.update_or_create(
-                user=user,
-                defaults={
-                    'github_username' : github_username,
-                    'avatar_url' : user_info.get('avatar_url', ''),
-                    'bio' : user_info.get('bio', ''),
-                    'location' : user_info.get('location', '')
-                }
-            )
-
-            return redirect('profile')
+        github_username = request.POST['github_username']
+        if github_username :
+            profile, created = GitHubProfile.objects.get_or_create(user=request.user)
+            profile.github_username = github_username
+            profile.save()
+            return redirect('profile')  # Redirect to the home page or any other page
         else :
-            error_message = f"GitHub username '{github_username}' not found."
-            context = {'error_message' : error_message}
-            return render(request, 'register.html', context)
+            return render(request, 'register.html', {'error_message' : 'GitHub username is required.'})
 
     return render(request, 'register.html')
 
@@ -77,6 +57,7 @@ def github_callback(request) :
 
 
 @login_required
+@require_github_username
 def profile(request) :
     github_profile = request.user.githubprofile
     repositories = requests.get(
@@ -91,6 +72,7 @@ def profile(request) :
 
 
 @login_required
+@require_github_username
 def repo_detail(request, repo_name) :
     github_profile = request.user.githubprofile
     repo = requests.get(
@@ -104,6 +86,7 @@ def repo_detail(request, repo_name) :
 
 
 @login_required
+@require_github_username
 def get_activity_stats(request) :
     github_profile = request.user.githubprofile
     repos = requests.get(
@@ -132,6 +115,7 @@ def get_activity_stats(request) :
 
 
 @login_required
+@require_github_username
 def activity_stats_page(request) :
     github_username = request.user.githubprofile.github_username
     headers = {'Authorization' : f'token {PERSONAL_ACCESS_TOKEN}'}

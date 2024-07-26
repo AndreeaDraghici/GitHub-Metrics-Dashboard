@@ -39,33 +39,65 @@ body {
     margin-top: 20px;
 }
 
-/* Stilizare formular */
-form {
+/* Register Page Styling */
+.register-container {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.8); /* Slightly transparent background */
+    backdrop-filter: blur(10px); /* Blurred background effect */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.register-container h1 {
+    font-size: 24px;
+    color: #333;
+    text-align: center;
     margin-bottom: 20px;
 }
 
-form label {
-    display: block;
+.register-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.register-form label {
+    font-weight: bold;
     margin-bottom: 5px;
+    margin-top: 0; /* Remove top margin */
 }
 
-form input[type="text"] {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
+.register-form input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
     box-sizing: border-box;
+    width: 100%;
+    margin-bottom: 15px; /* Optional: space between input fields */
 }
 
-form button {
+.register-form button.register-button {
     background-color: #4CAF50;
     color: white;
     padding: 10px 20px;
     border: none;
+    border-radius: 5px;
     cursor: pointer;
+    font-size: 16px;
+    text-align: center;
 }
 
-form button:hover {
+.register-form button.register-button:hover {
     background-color: #45a049;
+}
+
+.error-message {
+    color: red;
+    text-align: center;
+    margin-bottom: 20px;
 }
 
 /* Stilizare pentru profile.html */
@@ -218,4 +250,73 @@ input[type="text"] {
     input[type="text"] {
         width: 90%;
     }
+}
+
+/* General table styling */
+/*.dataTables_wrapper {
+    margin-bottom: 20px; *//* Space below the table *//*
+}*/
+
+/* Styling for search */
+.dataTables_wrapper .dataTables_filter {
+    float: left;
+    text-align: left;
+    margin-bottom: 10px; /* Space between search and the rest of the table */
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    padding: 8px; /* Padding size for input */
+    border: 1px solid #ccc; /* Border style and color */
+    border-radius: 4px; /* Border radius */
+    width: 300px; /* Input width */
+}
+
+/* Styling for pagination and info */
+.dataTables_wrapper .dataTables_info {
+    float: left;
+    margin-top: 10px; /* Space between info and the rest of the table */
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    float: right;
+    text-align: right;
+    margin-top: 10px; /* Space between pagination and the rest of the table */
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 5px 10px; /* Padding size for buttons */
+    margin: 0 3px; /* Space between buttons */
+    border: 1px solid #ccc; /* Border style and color for buttons */
+    border-radius: 4px; /* Border radius */
+    background-color: #f0f0f0; /* Background color for buttons */
+    color: #333; /* Text color */
+    cursor: pointer; /* Pointer cursor on hover */
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background-color: #e0e0e0; /* Background color for current button */
+    font-weight: bold; /* Bold text for current button */
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background-color: #ddd; /* Background color on hover */
+}
+
+/* Styling for length selection */
+.dataTables_wrapper .dataTables_length {
+    float: right;
+    text-align: right;
+    margin-bottom: 10px; /* Space between select and the rest of the table */
+}
+
+.dataTables_wrapper .dataTables_length select {
+    padding: 5px; /* Padding size for select */
+    border: 1px solid #ccc; /* Border style and color */
+    border-radius: 4px; /* Border radius */
+    background-color: #fff; /* Background color for select */
+    color: #333; /* Text color */
+}
+
+table.dataTable {
+    margin-top: 0 !important;
 }
