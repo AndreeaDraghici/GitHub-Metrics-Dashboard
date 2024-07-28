@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="{% static 'js/chart.min.js' %}"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <title>Language Statistics</title>
+</head>
+{% block content %}
+
+<h1>Language Usage Statistics</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Language</th>
+                <th>Usage (%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for language, percentage in language_percentages %}
+                <tr>
+                    <td>{{ language }}</td>
+                    <td>{{ percentage|floatformat:2 }}%</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+</html>

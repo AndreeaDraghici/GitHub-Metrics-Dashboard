@@ -149,7 +149,6 @@ def contribution_stats(request) :
         'sorted_languages' : sorted_languages
     }
 
-
     return render(request, 'contribution_stats.html', context)
 
 
@@ -224,3 +223,41 @@ def activity_stats_page(request) :
 
     # Render the template with the stats
     return render(request, 'activity_stats_page.html', stats)
+
+
+def language_statistics(request) :
+    github_username = request.session.get('github_username')
+    if not github_username :
+        return redirect('register')
+
+    # Obține lista de repozitorii
+    repositories = requests.get(
+        f"{GITHUB_API_URL}/users/{github_username}/repos",
+        headers={'Authorization' : f'token {PERSONAL_ACCESS_TOKEN}'}
+    ).json()
+
+    language_data = {}
+    total_bytes = 0
+    for repo in repositories :
+        languages = requests.get(
+            repo['languages_url'],
+            headers={'Authorization' : f'token {PERSONAL_ACCESS_TOKEN}'}
+        ).json()
+        for language, bytes in languages.items() :
+            if language in language_data :
+                language_data[language] += bytes
+            else :
+                language_data[language] = bytes
+            total_bytes += bytes
+
+    language_percentages = {}
+    for language, bytes in language_data.items() :
+        percentage = (bytes / total_bytes) * 100
+        language_percentages[language] = percentage
+
+    sorted_language_percentages = sorted(language_percentages.items(), key=lambda item : item[1], reverse=True)
+
+    context = {
+        'language_percentages' : sorted_language_percentages
+    }
+    return render(request, 'language_statistics.html', context)
