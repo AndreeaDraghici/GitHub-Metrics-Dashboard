@@ -1,0 +1,57 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Custom Admin Dashboard{% endblock %}
+
+{% block content %}
+<h1>Welcome to Custom Admin Dashboard</h1>
+
+<div class="admin-stats">
+    <h2>Overall User Statistics</h2>
+    <ul>
+        <li>Total Users: {{ users_count }}</li>
+        <li>Active Users: {{ active_users_count }}</li>
+        <li>Staff Users: {{ staff_users_count }}</li>
+        <li>Superusers: {{ superuser_count }}</li>
+    </ul>
+</div>
+
+<h2>User Details</h2>
+<table id="userTable" class="display">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Is Active</th>
+            <th>Is Staff</th>
+            <th>Is Superuser</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in user_details %}
+        <tr>
+            <td>{{ user.username }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.first_name }}</td>
+            <td>{{ user.last_name }}</td>
+            <td>{{ user.is_active }}</td>
+            <td>{{ user.is_staff }}</td>
+            <td>{{ user.is_superuser }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Include jQuery and DataTables -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+<script>
+    $(document).ready(function() {
+        $('#userTable').DataTable();
+    });
+</script>
+
+{% endblock %}

@@ -18,7 +18,9 @@ from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
 
+from github_app.admin import custom_admin_site
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', custom_admin_site.urls),
     path('', include('github_app.urls')),
 ]

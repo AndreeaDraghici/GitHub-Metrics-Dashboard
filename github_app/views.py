@@ -18,7 +18,7 @@ def github_login(request) :
     return render(request, 'login.html')
 
 
-@login_required
+# @login_required
 def register(request) :
     if request.method == 'POST' :
         github_username = request.POST.get('github_username')
@@ -32,7 +32,7 @@ def register(request) :
     return render(request, 'register.html')
 
 
-@login_required
+# @login_required
 def github_callback(request) :
     github_username = request.session.get('github_username')
     if not github_username :
@@ -51,7 +51,7 @@ def github_callback(request) :
     return redirect('profile')
 
 
-@login_required
+# @login_required
 def profile(request) :
     github_username = request.session.get('github_username')
     if not github_username :
@@ -74,7 +74,7 @@ def profile(request) :
     return render(request, 'profile.html', context)
 
 
-@login_required
+# @login_required
 # @require_github_username
 def repo_detail(request, repo_name) :
     github_username = request.session.get('github_username')
@@ -91,7 +91,7 @@ def repo_detail(request, repo_name) :
     return render(request, 'repo_detail.html', context)
 
 
-@login_required
+# @login_required
 # @require_github_username
 def contribution_stats(request) :
     github_username = request.session.get('github_username')
@@ -153,7 +153,7 @@ def contribution_stats(request) :
     return render(request, 'contribution_stats.html', context)
 
 
-@login_required
+# @login_required
 # @require_github_username
 def activity_stats_page(request) :
     github_username = request.session.get('github_username')

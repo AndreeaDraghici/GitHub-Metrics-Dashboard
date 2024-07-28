@@ -1,2 +1,3 @@
 /staticfiles/
 *.idea
+/GithubProcessAutomation/db.sqlite3

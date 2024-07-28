@@ -1,0 +1,17 @@
+/* Custom admin styles */
+body {
+    background-color: #f8f9fa;
+    color: #343a40;
+}
+
+a {
+    color: #007bff;
+}
+
+a:hover {
+    color: #0056b3;
+}
+
+.card {
+    margin-bottom: 20px;
+}
