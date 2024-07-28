@@ -1,13 +1,11 @@
 import requests
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
-from .decorators import require_github_username
-from .models import GitHubProfile
+from django.contrib.auth.models import User
 
-# Create your views here.
+from .decorators import require_github_username
 
 # Endpoint-uri GitHub API
 GITHUB_API_URL = "https://api.github.com"
@@ -15,57 +13,62 @@ PERSONAL_ACCESS_TOKEN = "github_pat_11ARLTXHA0Hdvq9Z20d0Es_3Abvzq52FauyUsFqyIaDI
 
 
 def github_login(request) :
+    # Clear session data on login page to ensure a fresh start
+    request.session.flush()
     return render(request, 'login.html')
 
 
 @login_required
 def register(request) :
     if request.method == 'POST' :
-        github_username = request.POST['github_username']
+        github_username = request.POST.get('github_username')
         if github_username :
-            profile, created = GitHubProfile.objects.get_or_create(user=request.user)
-            profile.github_username = github_username
-            profile.save()
-            return redirect('profile')  # Redirect to the home page or any other page
+            # Temporarily store the GitHub username in the session
+            request.session['github_username'] = github_username
+            return redirect('github_callback')  # Redirect to GitHub callback to fetch user data
         else :
             return render(request, 'register.html', {'error_message' : 'GitHub username is required.'})
 
     return render(request, 'register.html')
 
 
+@login_required
 def github_callback(request) :
+    github_username = request.session.get('github_username')
+    if not github_username :
+        return redirect('register')  # Redirect to registration if GitHub username is not in the session
+
+    # Fetch user info using the GitHub API
     user_info = requests.get(
-        f"{GITHUB_API_URL}/user",
+        f"{GITHUB_API_URL}/users/{github_username}",
         headers={'Authorization' : f'token {PERSONAL_ACCESS_TOKEN}'}
     ).json()
 
-    user, created = User.objects.get_or_create(username=user_info['login'])
-    if created :
-        github_profile = GitHubProfile(
-            user=user,
-            github_username=user_info['login'],
-            avatar_url=user_info['avatar_url'],
-            bio=user_info.get('bio', ''),
-            location=user_info.get('location', '')
-        )
-        github_profile.save()
-
-    # Log the user in
+    # Create a user object and log the user in
+    user, _ = User.objects.get_or_create(username=user_info['login'])
     login(request, user)
 
     return redirect('profile')
 
 
 @login_required
-@require_github_username
 def profile(request) :
-    github_profile = request.user.githubprofile
-    repositories = requests.get(
-        f"{GITHUB_API_URL}/user/repos",
+    github_username = request.session.get('github_username')
+    if not github_username :
+        return redirect('register')  # Redirect to registration if GitHub username is not in the session
+
+    user_info = requests.get(
+        f"{GITHUB_API_URL}/users/{github_username}",
         headers={'Authorization' : f'token {PERSONAL_ACCESS_TOKEN}'}
     ).json()
+
+    repositories = requests.get(
+        f"{GITHUB_API_URL}/users/{github_username}/repos",
+        headers={'Authorization' : f'token {PERSONAL_ACCESS_TOKEN}'}
+    ).json()
+
     context = {
-        'profile' : github_profile,
+        'profile' : user_info,
         'repositories' : repositories
     }
     return render(request, 'profile.html', context)
@@ -74,9 +77,12 @@ def profile(request) :
 @login_required
 @require_github_username
 def repo_detail(request, repo_name) :
-    github_profile = request.user.githubprofile
+    github_username = request.session.get('github_username')
+    if not github_username :
+        return redirect('register')  # Redirect to registration if GitHub username is not in the session
+
     repo = requests.get(
-        f"{GITHUB_API_URL}/repos/{github_profile.github_username}/{repo_name}",
+        f"{GITHUB_API_URL}/repos/{github_username}/{repo_name}",
         headers={'Authorization' : f'token {PERSONAL_ACCESS_TOKEN}'}
     ).json()
     context = {
@@ -87,37 +93,73 @@ def repo_detail(request, repo_name) :
 
 @login_required
 @require_github_username
-def get_activity_stats(request) :
-    github_profile = request.user.githubprofile
-    repos = requests.get(
-        f"{GITHUB_API_URL}/user/repos",
-        headers={'Authorization' : f'token {PERSONAL_ACCESS_TOKEN}'}
-    ).json()
+def contribution_stats(request) :
+    github_username = request.session.get('github_username')
+    if not github_username :
+        return redirect('register')  # Redirect to registration if GitHub username is not in the session
 
-    commit_counts = []
-    languages = {}
+    # Fetch repositories
+    repos_response = requests.get(
+        f"{GITHUB_API_URL}/users/{github_username}/repos",
+        headers={'Authorization' : f'token {PERSONAL_ACCESS_TOKEN}'}
+    )
+    repos = repos_response.json()
+
+    # Initialize counters and data structures
+    total_commits = 0
+    total_stars = 0
+    total_forks = 0
+    language_counts = {}
+    repository_details = []
 
     for repo in repos :
         repo_name = repo['name']
-        commits = requests.get(
-            f"{GITHUB_API_URL}/repos/{github_profile.github_username}/{repo_name}/commits",
+        total_stars += repo['stargazers_count']
+        total_forks += repo['forks_count']
+
+        # Fetch commits for each repository
+        commits_response = requests.get(
+            f"{GITHUB_API_URL}/repos/{github_username}/{repo_name}/commits",
             headers={'Authorization' : f'token {PERSONAL_ACCESS_TOKEN}'}
-        ).json()
-        commit_counts.append({'repo' : repo_name, 'commits' : len(commits)})
+        )
+        commits = commits_response.json()
+        total_commits += len(commits)
 
-        lang = repo['language']
-        if lang :
-            languages[lang] = languages.get(lang, 0) + 1
+        # Count languages
+        language = repo['language']
+        if language :
+            language_counts[language] = language_counts.get(language, 0) + 1
 
-    languages = [{'language' : lang, 'count' : count} for lang, count in languages.items()]
+        # Collect repository details
+        repository_details.append({
+            'name' : repo_name,
+            'stars' : repo['stargazers_count'],
+            'forks' : repo['forks_count'],
+            'commits' : len(commits),
+            'language' : language
+        })
 
-    return JsonResponse({'commit_counts' : commit_counts, 'languages' : languages})
+    # Convert language counts to a sorted list of tuples
+    sorted_languages = sorted(language_counts.items(), key=lambda item : item[1], reverse=True)
 
+    # Prepare context data
+    context = {
+        'total_commits' : total_commits,
+        'total_stars' : total_stars,
+        'total_forks' : total_forks,
+        'sorted_languages' : sorted_languages,
+        'repository_details' : repository_details
+    }
+
+    return render(request, 'contribution_stats.html', context)
 
 @login_required
 @require_github_username
 def activity_stats_page(request) :
-    github_username = request.user.githubprofile.github_username
+    github_username = request.session.get('github_username')
+    if not github_username :
+        return redirect('register')  # Redirect to registration if GitHub username is not in the session
+
     headers = {'Authorization' : f'token {PERSONAL_ACCESS_TOKEN}'}
 
     # Fetch repositories
