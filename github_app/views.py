@@ -75,7 +75,7 @@ def profile(request) :
 
 
 @login_required
-@require_github_username
+# @require_github_username
 def repo_detail(request, repo_name) :
     github_username = request.session.get('github_username')
     if not github_username :
@@ -92,69 +92,69 @@ def repo_detail(request, repo_name) :
 
 
 @login_required
-@require_github_username
+# @require_github_username
 def contribution_stats(request) :
     github_username = request.session.get('github_username')
     if not github_username :
         return redirect('register')  # Redirect to registration if GitHub username is not in the session
 
-    # Fetch repositories
-    repos_response = requests.get(
+    user_data = requests.get(
+        f"{GITHUB_API_URL}/users/{github_username}",
+        headers={'Authorization' : f'token {PERSONAL_ACCESS_TOKEN}'}
+    ).json()
+
+    repos = requests.get(
         f"{GITHUB_API_URL}/users/{github_username}/repos",
         headers={'Authorization' : f'token {PERSONAL_ACCESS_TOKEN}'}
-    )
-    repos = repos_response.json()
+    ).json()
 
-    # Initialize counters and data structures
-    total_commits = 0
-    total_stars = 0
-    total_forks = 0
-    language_counts = {}
     repository_details = []
-
+    total_commits = 0
     for repo in repos :
         repo_name = repo['name']
-        total_stars += repo['stargazers_count']
-        total_forks += repo['forks_count']
-
-        # Fetch commits for each repository
-        commits_response = requests.get(
+        commits = requests.get(
             f"{GITHUB_API_URL}/repos/{github_username}/{repo_name}/commits",
             headers={'Authorization' : f'token {PERSONAL_ACCESS_TOKEN}'}
-        )
-        commits = commits_response.json()
-        total_commits += len(commits)
-
-        # Count languages
-        language = repo['language']
-        if language :
-            language_counts[language] = language_counts.get(language, 0) + 1
-
-        # Collect repository details
+        ).json()
+        commit_count = len(commits)
+        total_commits += commit_count
         repository_details.append({
-            'name' : repo_name,
-            'stars' : repo['stargazers_count'],
-            'forks' : repo['forks_count'],
-            'commits' : len(commits),
-            'language' : language
+            'name' : repo.get('name', 'N/A'),
+            'description' : repo.get('description', 'No description'),
+            'language' : repo.get('language', 'Unknown'),
+            'created_at' : repo.get('created_at', 'N/A'),
+            'updated_at' : repo.get('updated_at', 'N/A'),
+            'html_url' : repo.get('html_url', '#')
         })
 
-    # Convert language counts to a sorted list of tuples
-    sorted_languages = sorted(language_counts.items(), key=lambda item : item[1], reverse=True)
+    total_repos = len(repos)
+    account_created_at = user_data.get('created_at', 'N/A')
+    last_updated_at = user_data.get('updated_at', 'N/A')
 
-    # Prepare context data
+    # Count the number of repositories for each language
+    languages = {}
+    for repo in repos :
+        lang = repo['language']
+        if lang :
+            languages[lang] = languages.get(lang, 0) + 1
+    sorted_languages = sorted(languages.items(), key=lambda x : x[1], reverse=True)
+
     context = {
+        'github_username' : github_username,
+        'repository_details' : repository_details,
         'total_commits' : total_commits,
-        'total_stars' : total_stars,
-        'total_forks' : total_forks,
-        'sorted_languages' : sorted_languages,
-        'repository_details' : repository_details
+        'total_repos' : total_repos,
+        'account_created_at' : account_created_at,
+        'last_updated_at' : last_updated_at,
+        'sorted_languages' : sorted_languages
     }
+
 
     return render(request, 'contribution_stats.html', context)
 
+
 @login_required
-@require_github_username
+# @require_github_username
 def activity_stats_page(request) :
     github_username = request.session.get('github_username')
     if not github_username :
