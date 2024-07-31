@@ -431,3 +431,15 @@ input[type="text"] {
 table.dataTable {
     margin-top: 0 !important;
 }
+
+/* Add this to your CSS file */
+.error-message {
+    color: red;
+    font-size: 0.9em;
+    display: block;
+    margin-top: 5px;
+}
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}

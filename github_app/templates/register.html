@@ -17,9 +17,12 @@
         {% csrf_token %}
         <label for="github_username">Fill with your GitHub Username:</label>
         <input type="text" id="github_username" name="github_username" required>
+        <span id="username-error" class="error-message"></span>
         <br>
         <br>
-        <button type="submit" class="register-button">Register</button>
+        <button type="submit" class="register-button" >Register</button>
     </form>
 </div>
+ <!-- Custom script -->
+    <script src="{% static 'validation.js' %}"></script>
 {% endblock %}
