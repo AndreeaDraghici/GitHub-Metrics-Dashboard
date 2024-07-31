@@ -130,3 +130,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/'
 LOGIN_REDIRECT_URL = 'profile'
 LOGOUT_REDIRECT_URL = '/'
+
+from decouple import config
+
+GITHUB_PERSONAL_ACCESS_TOKEN = config('GITHUB_PERSONAL_ACCESS_TOKEN')
