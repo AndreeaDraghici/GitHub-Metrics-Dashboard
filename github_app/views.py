@@ -68,7 +68,7 @@ def repo_detail(request, repo_name):
     if not github_username:
         return redirect('register')  # Redirect to registration if GitHub username is not in the session
 
-    repo = APIService.get_user_repos(github_username, repo_name)
+    repo = APIService.get_user_repo(github_username, repo_name)
     context = {
         'repo': repo
     }

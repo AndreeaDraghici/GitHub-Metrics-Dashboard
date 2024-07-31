@@ -5,17 +5,50 @@
 {% block title %}Profile{% endblock %}
 
 {% block content %}
-    <div class="profile-container">
-        <h1>{{ profile.github_username }}</h1>
-        <img src="{{ profile.avatar_url }}" alt="Avatar">
-        <p>{{ profile.bio }}</p>
-        <p>{{ profile.location }}</p>
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-avatar-container">
+            <img src="{{ profile.avatar_url }}" alt="Avatar" class="profile-avatar">
+        </div>
+        <div class="profile-info">
+            <h1>{{ profile.github_username }}</h1>
+            <p><strong>Bio:</strong> {{ profile.bio }}</p>
+            <p><strong>Location:</strong> {{ profile.location }}</p>
 
-        <h2>Repositories</h2>
-        <ul>
-            {% for repo in repositories %}
-            <li><a href="{% url 'repo_detail' repo.name %}">{{ repo.name }}</a></li>
-            {% endfor %}
-        </ul>
+            {% if profile.email %}
+            <p><strong>Email:</strong> {{ profile.email }}</p>
+            {% endif %}
+
+            {% if profile.blog %}
+            <p><strong>Website:</strong> <a href="{{ profile.blog }}" target="_blank">{{ profile.blog }}</a></p>
+            {% endif %}
+
+            {% if profile.twitter_username %}
+            <p><strong>Twitter:</strong> <a href="https://twitter.com/{{ profile.twitter_username }}" target="_blank">{{
+                profile.twitter_username }}</a></p>
+            {% endif %}
+
+            <p><strong>Joined:</strong> {{ profile.created_at }}</p>
+        </div>
     </div>
+
+    <h2>Repositories ({{ profile.public_repos }})</h2>
+    <table class="repositories-table">
+        <thead>
+        <tr>
+            <th>Count</th>
+            <th>Repository</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for repo in repositories %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td><a href="{% url 'repo_detail' repo.name %}">{{ repo.name }}</a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 {% endblock %}
