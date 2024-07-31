@@ -226,8 +226,11 @@ def github_interactions(request) :
         action = request.POST.get('action')
         if action == 'create_repo' :
             return create_repo(request)
-        # Add other actions here if needed
-    return render(request, 'github_interactions.html')
+        elif action == 'delete_repo' :
+            return delete_repo(request)
+    # Fetch repositories to display in the deletion modal
+    repositories = fetch_user_repositories()
+    return render(request, 'github_interactions.html', {'repositories' : repositories})
 
 
 def create_repo(request) :
@@ -249,8 +252,40 @@ def create_repo(request) :
         headers=headers
     )
     if response.status_code == 201 :
-        message = 'Repository created successfully'
+        message = 'Repository created successfully.'
     else :
-        message = response.json().get('message', 'Error occurred')
-    # Render the template with the modal message
+        message = f'Error: {response.status_code} - {response.text}'
     return render(request, 'github_interactions.html', {'modal_message' : message})
+
+
+def delete_repo(request) :
+    repo_name = request.POST.get('repo_name')
+    headers = {
+        'Authorization' : f'token {settings.GITHUB_PERSONAL_ACCESS_TOKEN}',
+        'Accept' : 'application/vnd.github.v3+json',
+    }
+    response = requests.delete(
+        f'https://api.github.com/repos/{settings.GITHUB_USERNAME}/{repo_name}',
+        headers=headers
+    )
+    if response.status_code == 204 :
+        message = 'Repository deleted successfully.'
+    else :
+        message = f'Error: {response.status_code} - {response.text}'
+    # Fetch updated list of repositories
+    repositories = fetch_user_repositories()
+    return render(request, 'github_interactions.html', {'modal_message' : message, 'repositories' : repositories})
+
+
+def fetch_user_repositories() :
+    headers = {
+        'Authorization' : f'token {settings.GITHUB_PERSONAL_ACCESS_TOKEN}',
+        'Accept' : 'application/vnd.github.v3+json',
+    }
+    response = requests.get(
+        'https://api.github.com/user/repos',
+        headers=headers
+    )
+    if response.status_code == 200 :
+        return response.json()
+    return []
