@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}GitHub Interactions{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3 class="text-center">GitHub Interactions</h3>
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-header">
+                    Create Repository
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Start a new project</h5>
+                    <p class="card-text">Create a new GitHub repository with a name and description.</p>
+                    <button class="btn btn-primary" data-toggle="modal" data-target="#createRepoModal">Create Repo</button>
+                </div>
+            </div>
+        </div>
+        <!-- Additional cards for other actions can go here -->
+    </div>
+</div>
+
+<!-- Modal for Response Messages -->
+<div class="modal fade" id="responseModal" tabindex="-1" role="dialog" aria-labelledby="responseModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="responseModalLabel">Response</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="modalMessage">{{ modal_message }}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Form for Creating Repository -->
+<div class="modal fade" id="createRepoModal" tabindex="-1" role="dialog" aria-labelledby="createRepoModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="createRepoForm" method="post" action="{% url 'github_interactions' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_repo">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createRepoModalLabel">Create Repository</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="name">Repository Name:</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description:</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="form-group form-check">
+                        <input type="checkbox" class="form-check-input" id="private" name="private">
+                        <label class="form-check-label" for="private">Private</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Create Repository</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Include Bootstrap CSS and JS -->
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    // Show modal when page loads if modal_message is not empty
+    document.addEventListener('DOMContentLoaded', function() {
+        const modalMessage = "{{ modal_message|escapejs }}";
+        if (modalMessage) {
+            const responseModal = new bootstrap.Modal(document.getElementById('responseModal'));
+            document.getElementById('modalMessage').textContent = modalMessage;
+            responseModal.show();
+        }
+    });
+</script>
+
+{% endblock %}

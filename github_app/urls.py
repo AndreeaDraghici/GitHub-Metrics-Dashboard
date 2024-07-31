@@ -9,4 +9,5 @@ urlpatterns = [
     path('contribution_stats/', views.contribution_stats, name='contribution_stats'),
     path('activity_stats/', views.activity_stats_page, name='activity_stats_page'),
     path('language_statistics/', views.language_statistics, name='language_statistics'),
+    path('github/', views.github_interactions, name='github_interactions'),
 ]
