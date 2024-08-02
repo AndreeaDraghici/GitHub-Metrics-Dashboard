@@ -37,7 +37,7 @@ def github_callback(request) :
         return redirect('register')  # Redirect to registration if GitHub username is not in the session
 
     # Fetch user info using the GitHub API
-    user_info = APIService.get_user_info(github_username)
+    user_info = APIService.get_user_information(github_username)
 
     # Create a user object and log the user in
     user, _ = User.objects.get_or_create(username=user_info['login'])
@@ -52,8 +52,8 @@ def profile(request) :
     if not github_username :
         return redirect('register')  # Redirect to registration if GitHub username is not in the session
 
-    user_info = APIService.get_user_info(github_username)
-    repositories = APIService.get_user_repos(github_username)
+    user_info = APIService.get_user_information(github_username)
+    repositories = APIService.get_user_repositories(github_username)
 
     context = {
         'profile' : user_info,
@@ -69,7 +69,7 @@ def repo_detail(request, repo_name) :
     if not github_username :
         return redirect('register')  # Redirect to registration if GitHub username is not in the session
 
-    repo = APIService.get_user_repo(github_username, repo_name)
+    repo = APIService.get_user_repository(github_username, repo_name)
     context = {
         'repo' : repo
     }
@@ -83,14 +83,14 @@ def contribution_stats(request) :
     if not github_username :
         return redirect('register')  # Redirect to registration if GitHub username is not in the session
 
-    user_data = APIService.get_user_info(github_username)
-    repos = APIService.get_user_repos(github_username)
+    user_data = APIService.get_user_information(github_username)
+    repos = APIService.get_user_repositories(github_username)
 
     repository_details = []
     total_commits = 0
     for repo in repos :
         repo_name = repo['name']
-        commits = APIService.get_repo_commits(github_username, repo_name)
+        commits = APIService.get_repository_commits(github_username, repo_name)
         commit_count = len(commits)
         total_commits += commit_count
         repository_details.append({
@@ -134,7 +134,7 @@ def activity_stats_page(request) :
     if not github_username :
         return redirect('register')  # Redirect to registration if GitHub username is not in the session
 
-    repos_data = APIService.get_user_repos(github_username)
+    repos_data = APIService.get_user_repositories(github_username)
 
     # Metrics initialization
     total_commits = 0
@@ -149,19 +149,19 @@ def activity_stats_page(request) :
         total_forks += repo['forks_count']
 
         # Fetch commits count
-        commits_data = APIService.get_repo_commits(github_username, repo_name)
+        commits_data = APIService.get_repository_commits(github_username, repo_name)
         commits_count = len(commits_data)
         total_commits += commits_count
         repo['commits_count'] = commits_count
 
         # Fetch pull requests count
-        prs_data = APIService.get_repo_prs(github_username, repo_name)
+        prs_data = APIService.get_repository_pull_requests(github_username, repo_name)
         prs_count = len(prs_data)
         pull_requests.extend(prs_data)
         repo['prs_count'] = prs_count
 
         # Fetch issues count
-        issues_data = APIService.get_repo_issues(github_username, repo_name)
+        issues_data = APIService.get_repository_issues(github_username, repo_name)
         issues_count = len(issues_data)
         issues.extend(issues_data)
         repo['issues_count'] = issues_count
@@ -195,12 +195,12 @@ def language_statistics(request) :
     if not github_username :
         return redirect('register')
 
-    repositories = APIService.get_user_repos(github_username)
+    repositories = APIService.get_user_repositories(github_username)
 
     language_data = {}
     total_bytes = 0
     for repo in repositories :
-        languages = APIService.get_repo_languages(repo['languages_url'])
+        languages = APIService.get_repository_languages(repo['languages_url'])
         for language, bytes in languages.items() :
             if language in language_data :
                 language_data[language] += bytes
@@ -222,70 +222,41 @@ def language_statistics(request) :
 
 
 def github_interactions(request) :
+    github_username = request.session.get('github_username')
+    if not github_username :
+        return redirect('register')  # Redirect to registration if GitHub username is not in the session
+
     if request.method == 'POST' :
         action = request.POST.get('action')
         if action == 'create_repo' :
             return create_repo(request)
         elif action == 'delete_repo' :
             return delete_repo(request)
+
     # Fetch repositories to display in the deletion modal
-    repositories = fetch_user_repositories()
+    repositories = APIService.get_user_repositories(github_username)
     return render(request, 'github_interactions.html', {'repositories' : repositories})
 
 
 def create_repo(request) :
+    github_username = request.session.get('github_username')
+    if not github_username :
+        return redirect('register')  # Redirect to registration if GitHub username is not in the session
+
     repo_name = request.POST.get('name')
     description = request.POST.get('description')
     private = request.POST.get('private') == 'true'
-    data = {
-        'name' : repo_name,
-        'description' : description,
-        'private' : private,
-    }
-    headers = {
-        'Authorization' : f'token {settings.GITHUB_PERSONAL_ACCESS_TOKEN}',
-        'Accept' : 'application/vnd.github.v3+json',
-    }
-    response = requests.post(
-        'https://api.github.com/user/repos',
-        json=data,
-        headers=headers
-    )
-    if response.status_code == 201 :
-        message = 'Repository created successfully.'
-    else :
-        message = f'Error: {response.status_code} - {response.text}'
+    message = APIService.create_repository(github_username, repo_name, description, private)
     return render(request, 'github_interactions.html', {'modal_message' : message})
 
 
 def delete_repo(request) :
+    github_username = request.session.get('github_username')
+    if not github_username :
+        return redirect('register')  # Redirect to registration if GitHub username is not in the session
+
     repo_name = request.POST.get('repo_name')
-    headers = {
-        'Authorization' : f'token {settings.GITHUB_PERSONAL_ACCESS_TOKEN}',
-        'Accept' : 'application/vnd.github.v3+json',
-    }
-    response = requests.delete(
-        f'https://api.github.com/repos/{settings.GITHUB_USERNAME}/{repo_name}',
-        headers=headers
-    )
-    if response.status_code == 204 :
-        message = 'Repository deleted successfully.'
-    else :
-        message = f'Error: {response.status_code} - {response.text}'
+    message = APIService.delete_repository(github_username, repo_name)
     # Fetch updated list of repositories
-    repositories = fetch_user_repositories()
+    repositories = APIService.get_user_repositories(github_username)
     return render(request, 'github_interactions.html', {'modal_message' : message, 'repositories' : repositories})
-
-
-def fetch_user_repositories() :
-    headers = {
-        'Authorization' : f'token {settings.GITHUB_PERSONAL_ACCESS_TOKEN}',
-        'Accept' : 'application/vnd.github.v3+json',
-    }
-    response = requests.get(
-        'https://api.github.com/user/repos',
-        headers=headers
-    )
-    if response.status_code == 200 :
-        return response.json()
-    return []
