@@ -512,3 +512,88 @@ button:disabled {
    background-color: #5a6268;
    border-color: #545b62;
 }
+
+.fancy-modal {
+    border-radius: 10px;
+    background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+    color: #333;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.fancy-header {
+    background: #ff758c;
+    border-bottom: none;
+    color: #fff;
+}
+
+.fancy-body {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.8);
+    color: #333;
+}
+
+.fancy-footer {
+    background: #ff758c;
+    border-top: none;
+    color: #fff;
+}
+
+.close {
+    color: #fff;
+    opacity: 1;
+}
+
+.close:hover {
+    color: #ff3b6c;
+}
+
+.modal-header.bg-danger {
+        background-color: #dc3545; /* Red color */
+}
+
+.modal-header.bg-danger .close {
+   color: #fff;
+   opacity: 0.9;
+}
+
+.modal-header.bg-danger .close:hover {
+   opacity: 1;
+}
+
+.modal-content {
+   border-radius: 0.5rem;
+   border: none;
+   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-group label {
+   font-weight: bold;
+}
+
+.form-control.custom-select {
+  border-color: #007bff;
+}
+
+.modal-footer {
+  border-top: none;
+}
+
+.btn-danger {
+   background-color: #dc3545;
+   border-color: #dc3545;
+}
+
+.btn-danger:hover {
+   background-color: #c82333;
+   border-color: #bd2130;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+  border-color: #545b62;
+}

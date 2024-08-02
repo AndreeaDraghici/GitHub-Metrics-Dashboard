@@ -7,30 +7,34 @@
     <h3 class="text-center">GitHub Interactions</h3>
     <div class="row justify-content-center mt-4">
         <!-- Create Repository Card -->
-        <div class="col-md-4">
-            <div class="card text-center">
-                <div class="card-header">
-                    Create Repository
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow-lg border-0">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-plus-circle fa-2x"></i>
+                    <h5 class="mt-2">Create Repository</h5>
                 </div>
                 <div class="card-body">
                     <h5 class="card-title">Start a new project</h5>
                     <p class="card-text">Create a new GitHub repository with a name and description.</p>
-                    <button class="btn btn-primary" data-toggle="modal" data-target="#createRepoModal">Create Repo
+                    <button class="btn btn-outline-primary" data-toggle="modal" data-target="#createRepoModal">
+                        <i class="fas fa-plus"></i> Create Repo
                     </button>
                 </div>
             </div>
         </div>
 
         <!-- Delete Repository Card -->
-        <div class="col-md-4 mt-4">
-            <div class="card text-center">
-                <div class="card-header">
-                    Delete Repository
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow-lg border-0">
+                <div class="card-header bg-danger text-white">
+                    <i class="fas fa-trash-alt fa-2x"></i>
+                    <h5 class="mt-2">Delete Repository</h5>
                 </div>
                 <div class="card-body">
                     <h5 class="card-title">Remove an existing repository</h5>
                     <p class="card-text">Select a repository from the list to delete.</p>
-                    <button class="btn btn-danger" data-toggle="modal" data-target="#deleteRepoModal">Delete Repo
+                    <button class="btn btn-outline-danger" data-toggle="modal" data-target="#deleteRepoModal">
+                        <i class="fas fa-trash"></i> Delete Repo
                     </button>
                 </div>
             </div>
@@ -42,17 +46,17 @@
 <div class="modal fade" id="responseModal" tabindex="-1" role="dialog" aria-labelledby="responseModalLabel"
      aria-hidden="true">
     <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
+        <div class="modal-content fancy-modal">
+            <div class="modal-header fancy-header">
                 <h5 class="modal-title" id="responseModalLabel">Response</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body fancy-body">
                 <p id="modalMessage">{{ modal_message }}</p>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer fancy-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
         </div>
@@ -98,23 +102,22 @@
 
 
 <!-- Modal Form for Deleting Repository -->
-<div class="modal fade" id="deleteRepoModal" tabindex="-1" role="dialog" aria-labelledby="deleteRepoModalLabel"
-     aria-hidden="true">
+<div class="modal fade" id="deleteRepoModal" tabindex="-1" role="dialog" aria-labelledby="deleteRepoModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form id="deleteRepoForm" method="post" action="{% url 'github_interactions' %}">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="delete_repo">
-                <div class="modal-header">
+                <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title" id="deleteRepoModalLabel">Delete Repository</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="repo_select">Select Repository:</label>
-                        <select class="form-control" id="repo_select" name="repo_name" required>
+                        <label for="repo_select" class="text-primary">Select Repository:</label>
+                        <select class="form-control custom-select" id="repo_select" name="repo_name" required>
                             {% for repo in repositories %}
                             <option value="{{ repo.name }}">{{ repo.name }}</option>
                             {% endfor %}
@@ -122,7 +125,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-danger">Delete Repository</button>
                 </div>
             </form>
@@ -146,6 +149,8 @@
             responseModal.show();
         }
     });
+
+
 
 </script>
 
