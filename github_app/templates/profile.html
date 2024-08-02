@@ -17,6 +17,8 @@
 
             {% if profile.email %}
             <p><strong>Email:</strong> {{ profile.email }}</p>
+            {% else %}
+            <p><strong>Email:</strong> None</p>
             {% endif %}
 
             {% if profile.blog %}
@@ -24,8 +26,11 @@
             {% endif %}
 
             {% if profile.twitter_username %}
-            <p><strong>Twitter:</strong> <a href="https://twitter.com/{{ profile.twitter_username }}" target="_blank">{{
+            <p><strong>Twitter:</strong> <a
+                    href="https://twitter.com/{{ profile.twitter_username }}" target="_blank">{{
                 profile.twitter_username }}</a></p>
+            {% else %}
+            <p><strong>Twitter:</strong> None</p>
             {% endif %}
 
             <p><strong>Joined:</strong> {{ profile.created_at }}</p>
