@@ -246,7 +246,10 @@ def create_repo(request) :
     repo_name = request.POST.get('name')
     description = request.POST.get('description')
     private = request.POST.get('private') == 'true'
-    message = APIService.create_repository(github_username, repo_name, description, private)
+
+    # Pass only the parameters expected by the create_repository method
+    message = APIService.create_repository(repo_name, description, private)
+
     return render(request, 'github_interactions.html', {'modal_message' : message})
 
 

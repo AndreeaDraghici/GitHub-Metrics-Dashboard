@@ -475,3 +475,40 @@ button:disabled {
     text-decoration: none;
     cursor: pointer;
 }
+
+.modal-content {
+        border-radius: 10px;
+        border: none;
+}
+
+.modal-header {
+   border-bottom: none;
+}
+
+.modal-body {
+   padding: 2rem;
+}
+
+.form-group label {
+   color: #333;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-primary:hover {
+   background-color: #0056b3;
+   border-color: #0056b3;
+}
+
+.btn-secondary {
+   background-color: #6c757d;
+   border-color: #6c757d;
+}
+
+.btn-secondary:hover {
+   background-color: #5a6268;
+   border-color: #545b62;
+}

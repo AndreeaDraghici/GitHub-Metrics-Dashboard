@@ -15,7 +15,8 @@
                 <div class="card-body">
                     <h5 class="card-title">Start a new project</h5>
                     <p class="card-text">Create a new GitHub repository with a name and description.</p>
-                    <button class="btn btn-primary" data-toggle="modal" data-target="#createRepoModal">Create Repo</button>
+                    <button class="btn btn-primary" data-toggle="modal" data-target="#createRepoModal">Create Repo
+                    </button>
                 </div>
             </div>
         </div>
@@ -29,7 +30,8 @@
                 <div class="card-body">
                     <h5 class="card-title">Remove an existing repository</h5>
                     <p class="card-text">Select a repository from the list to delete.</p>
-                    <button class="btn btn-danger" data-toggle="modal" data-target="#deleteRepoModal">Delete Repo</button>
+                    <button class="btn btn-danger" data-toggle="modal" data-target="#deleteRepoModal">Delete Repo
+                    </button>
                 </div>
             </div>
         </div>
@@ -37,7 +39,8 @@
 </div>
 
 <!-- Modal for Response Messages -->
-<div class="modal fade" id="responseModal" tabindex="-1" role="dialog" aria-labelledby="responseModalLabel" aria-hidden="true">
+<div class="modal fade" id="responseModal" tabindex="-1" role="dialog" aria-labelledby="responseModalLabel"
+     aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -57,25 +60,26 @@
 </div>
 
 <!-- Modal Form for Creating Repository -->
-<div class="modal fade" id="createRepoModal" tabindex="-1" role="dialog" aria-labelledby="createRepoModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+<div class="modal fade" id="createRepoModal" tabindex="-1" role="dialog" aria-labelledby="createRepoModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <form id="createRepoForm" method="post" action="{% url 'github_interactions' %}">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="create_repo">
-                <div class="modal-header">
+                <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="createRepoModalLabel">Create Repository</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="name">Repository Name:</label>
+                        <label for="name" class="font-weight-bold">Repository Name:</label>
                         <input type="text" class="form-control" id="name" name="name" required>
                     </div>
                     <div class="form-group">
-                        <label for="description">Description:</label>
+                        <label for="description" class="font-weight-bold">Description:</label>
                         <textarea class="form-control" id="description" name="description" rows="3"></textarea>
                     </div>
                     <div class="form-group form-check">
@@ -92,8 +96,10 @@
     </div>
 </div>
 
+
 <!-- Modal Form for Deleting Repository -->
-<div class="modal fade" id="deleteRepoModal" tabindex="-1" role="dialog" aria-labelledby="deleteRepoModalLabel" aria-hidden="true">
+<div class="modal fade" id="deleteRepoModal" tabindex="-1" role="dialog" aria-labelledby="deleteRepoModalLabel"
+     aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form id="deleteRepoForm" method="post" action="{% url 'github_interactions' %}">
@@ -140,6 +146,7 @@
             responseModal.show();
         }
     });
+
 </script>
 
 {% endblock %}
