@@ -160,14 +160,15 @@ class APIService :
             return f'Error: {response.status_code} - {response.text}'
 
     @classmethod
-    def delete_repository(cls, repo_name) :
+    def delete_repository(cls, repo_name, github_username) :
         """
         Deletes a repository for the authenticated user.
 
         :param repo_name: Name of the repository to delete
+        :param github_username: GitHub username
         :return: Response message indicating success or failure
         """
-        url = f"{cls.ENDPOINT_URL}/repos/{settings.GITHUB_USERNAME}/{repo_name}"
+        url = f"{cls.ENDPOINT_URL}/repos/{github_username}/{repo_name}"
         response = requests.delete(url, headers=cls.get_headers())
 
         if response.status_code == 204 :
