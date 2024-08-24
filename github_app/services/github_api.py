@@ -18,31 +18,21 @@ class APIService :
         }
 
     @classmethod
-    def get_user_information(cls, github_username) :
+    def get_user_repositories(cls, github_username, page=1, per_page=100) :
         """
-        Fetches information for a given GitHub user.
+        Fetches repositories for a given GitHub user with pagination.
 
         :param github_username: GitHub username
-        :return: User information in JSON format
-        """
-        url = f"{cls.ENDPOINT_URL}/users/{github_username}"
-        response = requests.get(url, headers=cls.get_headers())
-
-        if response.status_code != 200 :
-            raise Exception(f"Error fetching user info: {response.status_code} - {response.text}")
-
-        return response.json()
-
-    @classmethod
-    def get_user_repositories(cls, github_username) :
-        """
-        Fetches all repositories for a given GitHub user.
-
-        :param github_username: GitHub username
+        :param page: Page number to fetch
+        :param per_page: Number of results per page (max 100)
         :return: List of repositories in JSON format
         """
         url = f"{cls.ENDPOINT_URL}/users/{github_username}/repos"
-        response = requests.get(url, headers=cls.get_headers())
+        params = {
+            'per_page' : per_page,
+            'page' : page
+        }
+        response = requests.get(url, headers=cls.get_headers(), params=params)
 
         if response.status_code != 200 :
             raise Exception(f"Error fetching user repos: {response.status_code} - {response.text}")
@@ -58,29 +48,34 @@ class APIService :
         :param repo_name: Repository name to filter
         :return: Repository information if found, otherwise None
         """
-        url = f'{cls.ENDPOINT_URL}/users/{github_username}/repos'
-        response = requests.get(url, headers=cls.get_headers())
-
-        if response.status_code != 200 :
-            raise Exception(f"Error fetching repos: {response.status_code} - {response.text}")
-
-        repos = response.json()
-        for repo in repos :
-            if repo['name'].lower() == repo_name.lower() :
-                return repo
+        page = 1
+        while True :
+            repos = cls.get_user_repositories(github_username, page=page)
+            if not repos :
+                break
+            for repo in repos :
+                if repo['name'].lower() == repo_name.lower() :
+                    return repo
+            page += 1
         return None
 
     @classmethod
-    def get_repository_commits(cls, github_username, repo_name) :
+    def get_repository_commits(cls, github_username, repo_name, page=1, per_page=100) :
         """
-        Fetches all commits for a given repository of a GitHub user.
+        Fetches all commits for a given repository of a GitHub user with pagination.
 
         :param github_username: GitHub username
         :param repo_name: Repository name
+        :param page: Page number to fetch
+        :param per_page: Number of results per page (max 100)
         :return: List of commits in JSON format
         """
         url = f"{cls.ENDPOINT_URL}/repos/{github_username}/{repo_name}/commits"
-        response = requests.get(url, headers=cls.get_headers())
+        params = {
+            'per_page' : per_page,
+            'page' : page
+        }
+        response = requests.get(url, headers=cls.get_headers(), params=params)
 
         if response.status_code != 200 :
             raise Exception(f"Error fetching repo commits: {response.status_code} - {response.text}")
@@ -88,16 +83,23 @@ class APIService :
         return response.json()
 
     @classmethod
-    def get_repository_pull_requests(cls, github_username, repo_name) :
+    def get_repository_pull_requests(cls, github_username, repo_name, page=1, per_page=100) :
         """
-        Fetches all pull requests for a given repository of a GitHub user.
+        Fetches all pull requests for a given repository of a GitHub user with pagination.
 
         :param github_username: GitHub username
         :param repo_name: Repository name
+        :param page: Page number to fetch
+        :param per_page: Number of results per page (max 100)
         :return: List of pull requests in JSON format
         """
-        url = f"{cls.ENDPOINT_URL}/repos/{github_username}/{repo_name}/pulls?state=all"
-        response = requests.get(url, headers=cls.get_headers())
+        url = f"{cls.ENDPOINT_URL}/repos/{github_username}/{repo_name}/pulls"
+        params = {
+            'state' : 'all',
+            'per_page' : per_page,
+            'page' : page
+        }
+        response = requests.get(url, headers=cls.get_headers(), params=params)
 
         if response.status_code != 200 :
             raise Exception(f"Error fetching repo pull requests: {response.status_code} - {response.text}")
@@ -105,16 +107,23 @@ class APIService :
         return response.json()
 
     @classmethod
-    def get_repository_issues(cls, github_username, repo_name) :
+    def get_repository_issues(cls, github_username, repo_name, page=1, per_page=100) :
         """
-        Fetches all issues for a given repository of a GitHub user.
+        Fetches all issues for a given repository of a GitHub user with pagination.
 
         :param github_username: GitHub username
         :param repo_name: Repository name
+        :param page: Page number to fetch
+        :param per_page: Number of results per page (max 100)
         :return: List of issues in JSON format
         """
-        url = f"{cls.ENDPOINT_URL}/repos/{github_username}/{repo_name}/issues?state=all"
-        response = requests.get(url, headers=cls.get_headers())
+        url = f"{cls.ENDPOINT_URL}/repos/{github_username}/{repo_name}/issues"
+        params = {
+            'state' : 'all',
+            'per_page' : per_page,
+            'page' : page
+        }
+        response = requests.get(url, headers=cls.get_headers(), params=params)
 
         if response.status_code != 200 :
             raise Exception(f"Error fetching repo issues: {response.status_code} - {response.text}")
@@ -175,3 +184,19 @@ class APIService :
             return 'Repository deleted successfully.'
         else :
             return f'Error: {response.status_code} - {response.text}'
+
+    @classmethod
+    def get_user_information(cls, github_username) :
+        """
+        Fetches information for a given GitHub user.
+
+        :param github_username: GitHub username
+        :return: User information in JSON format
+        """
+        url = f"{cls.ENDPOINT_URL}/users/{github_username}"
+        response = requests.get(url, headers=cls.get_headers())
+
+        if response.status_code != 200 :
+            raise Exception(f"Error fetching user info: {response.status_code} - {response.text}")
+
+        return response.json()
