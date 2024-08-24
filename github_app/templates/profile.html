@@ -1,5 +1,3 @@
-<!-- templates/profile.html -->
-
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}Profile{% endblock %}
@@ -26,9 +24,8 @@
             {% endif %}
 
             {% if profile.twitter_username %}
-            <p><strong>Twitter:</strong> <a
-                    href="https://twitter.com/{{ profile.twitter_username }}" target="_blank">{{
-                profile.twitter_username }}</a></p>
+            <p><strong>Twitter:</strong> <a href="https://twitter.com/{{ profile.twitter_username }}" target="_blank">
+                {{ profile.twitter_username }}</a></p>
             {% else %}
             <p><strong>Twitter:</strong> None</p>
             {% endif %}
@@ -45,7 +42,7 @@
             <th>Repository</th>
         </tr>
         </thead>
-        <tbody>
+        <tbody id="repo-list">
         {% for repo in repositories %}
         <tr>
             <td>{{ forloop.counter }}</td>
@@ -54,6 +51,42 @@
         {% endfor %}
         </tbody>
     </table>
+
+    <!-- Pagination controls -->
+    <div class="pagination">
+        <button id="prevBtn" onclick="changePage(-1)" disabled>Previous</button>
+        <span id="pageNumber">Page 1</span>
+        <button id="nextBtn" onclick="changePage(1)">Next</button>
+    </div>
+
 </div>
+
+<script>
+    const rowsPerPage = 10;
+    let currentPage = 1;
+    const repoList = document.querySelectorAll('#repo-list tr');
+    const totalPages = Math.ceil(repoList.length / rowsPerPage);
+
+    function showPage(page) {
+        const start = (page - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+
+        repoList.forEach((row, index) => {
+            row.style.display = (index >= start && index < end) ? '' : 'none';
+        });
+
+        document.getElementById('pageNumber').textContent = `Page ${page}`;
+        document.getElementById('prevBtn').disabled = page === 1;
+        document.getElementById('nextBtn').disabled = page === totalPages;
+    }
+
+    function changePage(direction) {
+        currentPage += direction;
+        showPage(currentPage);
+    }
+
+    // Initial call to display the first page
+    showPage(currentPage);
+</script>
 
 {% endblock %}
