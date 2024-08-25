@@ -1,0 +1,52 @@
+name: Code Analysis
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  analyze:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install cloc
+      run: |
+        curl -LO https://github.com/AlDanial/cloc/releases/download/v1.94/cloc-1.94.exe
+        move cloc-1.94.exe cloc.exe
+
+    - name: List files and check cloc.exe
+      run: |
+        dir
+        if ([System.IO.File]::Exists("cloc.exe")) {
+          Write-Host "cloc.exe found with size: $(Get-Item cloc.exe).Length bytes"
+        } else {
+          Write-Host "cloc.exe not found"
+        }
+
+    - name: Run cloc and check for errors
+      run: |
+        .\cloc.exe . > cloc-report.txt 2>&1
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "Error running cloc: Exit code $LASTEXITCODE"
+          exit $LASTEXITCODE
+        }
+
+    - name: Check cloc-report.txt
+      run: |
+        if ([System.IO.File]::Exists("cloc-report.txt")) {
+          Write-Host "cloc-report.txt created. Content:"
+          Get-Content cloc-report.txt
+        } else {
+          Write-Host "cloc-report.txt not found"
+        }
+
+    - name: Upload cloc report
+      uses: actions/upload-artifact@v3
+      with:
+        name: cloc-report
+        path: cloc-report.txt
+        if-no-files-found: warn
