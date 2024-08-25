@@ -13,25 +13,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-
-    - name: Install Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-
-    - name: Install jscpd
-      run: |
-        npm install -g jscpd
-
     - name: Install cloc
       run: |
         curl -LO https://github.com/AlDanial/cloc/releases/download/v1.94/cloc-1.94.exe
@@ -40,13 +21,9 @@ jobs:
     - name: Count lines of code with cloc
       run: |
         .\cloc.exe .
-
-    - name: Detect duplicate code with jscpd
-      run: |
-        jscpd --input . --reporter json --output jscpd-report.json
-
-    - name: Upload duplicate code report
+      
+    - name: Upload cloc report
       uses: actions/upload-artifact@v3
       with:
-        name: jscpd-report
-        path: jscpd-report.json
+        name: cloc-report
+        path: cloc-report.txt
