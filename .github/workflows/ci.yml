@@ -18,12 +18,31 @@ jobs:
         curl -LO https://github.com/AlDanial/cloc/releases/download/v1.94/cloc-1.94.exe
         move cloc-1.94.exe cloc.exe
 
-    - name: Count lines of code with cloc
+    - name: List files and check cloc.exe
       run: |
-        .\cloc.exe . > cloc-report.txt
+        dir
+        if ([System.IO.File]::Exists("cloc.exe")) {
+          Write-Host "cloc.exe found with size: $(Get-Item cloc.exe).Length bytes"
+        } else {
+          Write-Host "cloc.exe not found"
+        }
 
-    - name: List files
-      run: dir
+    - name: Run cloc and check for errors
+      run: |
+        .\cloc.exe . > cloc-report.txt 2>&1
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "Error running cloc: Exit code $LASTEXITCODE"
+          exit $LASTEXITCODE
+        }
+
+    - name: Check cloc-report.txt
+      run: |
+        if ([System.IO.File]::Exists("cloc-report.txt")) {
+          Write-Host "cloc-report.txt created. Content:"
+          Get-Content cloc-report.txt
+        } else {
+          Write-Host "cloc-report.txt not found"
+        }
 
     - name: Upload cloc report
       uses: actions/upload-artifact@v3
