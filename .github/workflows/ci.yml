@@ -43,7 +43,7 @@ jobs:
 
     - name: Detect duplicate code with jscpd
       run: |
-        jscpd --reporter json --output jscpd-report.json
+        jscpd --input . --reporter json --output jscpd-report.json
 
     - name: Upload duplicate code report
       uses: actions/upload-artifact@v3
