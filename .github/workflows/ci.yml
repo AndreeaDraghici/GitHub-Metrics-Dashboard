@@ -23,14 +23,23 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Install cloc and jscpd
+    - name: Install Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install jscpd
       run: |
-        sudo apt-get install -y cloc
         npm install -g jscpd
+
+    - name: Install cloc
+      run: |
+        curl -LO https://github.com/AlDanial/cloc/releases/download/v1.94/cloc-1.94.exe
+        move cloc-1.94.exe cloc.exe
 
     - name: Count lines of code with cloc
       run: |
-        cloc .
+        .\cloc.exe .
 
     - name: Detect duplicate code with jscpd
       run: |
