@@ -20,10 +20,14 @@ jobs:
 
     - name: Count lines of code with cloc
       run: |
-        .\cloc.exe .
-      
+        .\cloc.exe . > cloc-report.txt
+
+    - name: List files
+      run: dir
+
     - name: Upload cloc report
       uses: actions/upload-artifact@v3
       with:
         name: cloc-report
         path: cloc-report.txt
+        if-no-files-found: warn
