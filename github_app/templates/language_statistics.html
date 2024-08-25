@@ -1,32 +1,89 @@
-{% extends 'base.html' %}
-{% load static %}
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <script src="{% static 'js/chart.min.js' %}"></script>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
-    <title>Language Statistics</title>
-</head>
-{% block content %}
+<!-- language_statistics.html -->
 
-<h1>Language Usage Statistics</h1>
-    <table border="1">
+{% extends 'base.html' %}
+
+{% block title %}Language Usage Statistics{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Language Usage Statistics</h1>
+
+    <!-- Table with statistics -->
+    <table id="language-table" class="table table-striped">
         <thead>
-            <tr>
-                <th>Language</th>
-                <th>Usage (%)</th>
-            </tr>
+        <tr>
+            <th>Language</th>
+            <th>Usage (%)</th>
+        </tr>
         </thead>
         <tbody>
-            {% for language, percentage in language_percentages %}
-                <tr>
-                    <td>{{ language }}</td>
-                    <td>{{ percentage|floatformat:2 }}%</td>
-                </tr>
-            {% endfor %}
+        {% for language, percentage in language_percentages %}
+        <tr data-language="{{ language }}">
+            <td>{{ language }}</td>
+            <td>{{ percentage|floatformat:2 }}%</td>
+        </tr>
+        {% endfor %}
         </tbody>
     </table>
+
+    <!-- Container for time-series chart -->
+    <canvas id="timeSeriesChart"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Prepare data for time-series chart
+            const timeSeriesData = {{ languages_activity|safe }};
+            const timeSeriesCtx = document.getElementById('timeSeriesChart').getContext('2d');
+
+            // Prepare labels and datasets
+            const languages = Object.keys(timeSeriesData);
+            const labels = Array.from(new Set(languages.flatMap(lang => Object.keys(timeSeriesData[lang])))).sort();
+            const datasets = languages.map(language => ({
+                label: language,
+                data: labels.map(label => timeSeriesData[language][label] || 0),
+                borderColor: getRandomColor(),
+                backgroundColor: getRandomColor(0.2),
+                fill: true,
+            }));
+
+            new Chart(timeSeriesCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets,
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Lines of Code'
+                            }
+                        }
+                    }
+                }
+            });
+
+            function getRandomColor(alpha = 1) {
+                return `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${alpha})`;
+            }
+        });
+
+    </script>
+
+</div>
 {% endblock %}
-</html>

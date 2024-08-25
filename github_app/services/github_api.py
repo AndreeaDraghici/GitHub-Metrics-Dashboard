@@ -1,3 +1,6 @@
+from collections import defaultdict
+from datetime import datetime
+
 import requests
 from django.conf import settings
 
@@ -200,3 +203,37 @@ class APIService :
             raise Exception(f"Error fetching user info: {response.status_code} - {response.text}")
 
         return response.json()
+
+    @classmethod
+    def get_committer_date_activity(cls, repo_name, github_username) :
+        params = {
+            "per_page" : 100,
+            "page" : 1
+        }
+        commits_url = f"{cls.ENDPOINT_URL}/repos/{github_username}/{repo_name}/commits"
+        languages_activity = defaultdict(lambda : defaultdict(int))
+
+        while True :
+            response = requests.get(commits_url, headers=cls.get_headers(), params=params)
+            commits = response.json()
+
+            if not commits :
+                break
+
+            for commit in commits :
+                commit_date = commit['commit']['committer']['date']
+                commit_year_month = datetime.strptime(commit_date, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m")
+
+                # Fetch the language stats for the commit's date
+                languages_url = f"{cls.ENDPOINT_URL}/repos/{github_username}/{repo_name}/languages"
+                languages_response = requests.get(languages_url, headers=cls.get_headers())
+                languages = languages_response.json()
+
+                for language, lines in languages.items() :
+                    # lines = int(lines)
+                    languages_activity[language][commit_year_month] += lines
+
+            # Move to the next page
+            params["page"] += 1
+
+        return languages_activity

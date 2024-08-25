@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import requests
 from django.conf import settings
 from django.contrib.auth import login
@@ -215,8 +217,21 @@ def language_statistics(request) :
 
     sorted_language_percentages = sorted(language_percentages.items(), key=lambda item : item[1], reverse=True)
 
+    # Collect time-series data
+    languages_activity = defaultdict(lambda : defaultdict(int))
+    for repo in repositories :
+        repo_languages_activity = APIService.get_committer_date_activity(repo['name'], github_username)
+        for language, monthly_data in repo_languages_activity.items() :
+            for date, lines in monthly_data.items() :
+                languages_activity[language][date] += lines
+
+    # Convert defaultdict to regular dict
+    languages_activity = {k : dict(v) for k, v in languages_activity.items()}
+
+    # Sort and prepare data for template
     context = {
-        'language_percentages' : sorted_language_percentages
+        'language_percentages' : sorted_language_percentages,
+        'languages_activity' : languages_activity
     }
     return render(request, 'language_statistics.html', context)
 
