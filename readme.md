@@ -68,8 +68,10 @@ The application should now be accessible at http://127.0.0.1:8000/.
 * Navigate to the login page and enter your GitHub username.
   ![img.png](img/img.png)
 
-* Upon successful login, you will be redirected to your profile page.
-  ![img_1.png](img/img_1.png)
+  * Upon successful login, you will be redirected to your profile page.
+    ![img_1.png](img/img_1.png)
+    ![img_7.png](img/img_7.png)
+
 
 **View and Manage Repositories:**
 
@@ -91,8 +93,8 @@ The application should now be accessible at http://127.0.0.1:8000/.
 **Language Statistics:**
 
 * The "Repositories Language Statistics" page provides a breakdown of the programming languages used in your
-  repositories.
-  ![img_4.png](img/img_4.png)
+  repositories. As well as a chart of the evolution of programming languages in time.
+  ![img_6.png](img/img_6.png)
 
 ## **Additional Notes**
 
