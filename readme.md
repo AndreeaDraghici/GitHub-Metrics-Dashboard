@@ -57,7 +57,7 @@ To access the Django admin interface, create a superuser:
 
 Start the Django development server:
 
-`python manage.py runserver`
+`python manage.py runserver` or run in command prompt the _run_server.bat_
 
 The application should now be accessible at http://127.0.0.1:8000/.
 
