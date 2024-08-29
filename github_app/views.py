@@ -194,46 +194,56 @@ def activity_stats_page(request) :
 
 def language_statistics(request) :
     github_username = request.session.get('github_username')
+
+    # Redirect if the user is not logged in
     if not github_username :
         return redirect('register')
 
+    # Fetch repositories once and reuse for both percentage and activity calculations
     repositories = APIService.get_user_repositories(github_username)
 
-    language_data = {}
+    # Get language percentages and activity data using the repositories list
+    sorted_language_percentages = get_language_percentages_from_repos(repositories)
+    languages_activity = get_languages_activity_from_repos(repositories, github_username)
+
+    # Prepare context for template
+    context = {
+        'language_percentages' : sorted_language_percentages,
+        'languages_activity' : languages_activity
+    }
+
+    return render(request, 'language_statistics.html', context)
+
+
+def get_language_percentages_from_repos(repositories) :
+    language_data = defaultdict(int)
     total_bytes = 0
+
     for repo in repositories :
         languages = APIService.get_repository_languages(repo['languages_url'])
         for language, bytes in languages.items() :
-            if language in language_data :
-                language_data[language] += bytes
-            else :
-                language_data[language] = bytes
+            language_data[language] += bytes
             total_bytes += bytes
 
-    language_percentages = {}
-    for language, bytes in language_data.items() :
-        percentage = (bytes / total_bytes) * 100
-        language_percentages[language] = percentage
+    sorted_language_percentages = sorted(
+        ((language, (bytes / total_bytes) * 100) for language, bytes in language_data.items()),
+        key=lambda item : item[1],
+        reverse=True
+    )
 
-    sorted_language_percentages = sorted(language_percentages.items(), key=lambda item : item[1], reverse=True)
+    return sorted_language_percentages
 
-    # Collect time-series data
+
+def get_languages_activity_from_repos(repositories, github_username) :
     languages_activity = defaultdict(lambda : defaultdict(int))
+
     for repo in repositories :
         repo_languages_activity = APIService.get_committer_date_activity(repo['name'], github_username)
         for language, monthly_data in repo_languages_activity.items() :
             for date, lines in monthly_data.items() :
                 languages_activity[language][date] += lines
 
-    # Convert defaultdict to regular dict
-    languages_activity = {k : dict(v) for k, v in languages_activity.items()}
-
-    # Sort and prepare data for template
-    context = {
-        'language_percentages' : sorted_language_percentages,
-        'languages_activity' : languages_activity
-    }
-    return render(request, 'language_statistics.html', context)
+    return {language : dict(dates) for language, dates in languages_activity.items()}
 
 
 def github_interactions(request) :
