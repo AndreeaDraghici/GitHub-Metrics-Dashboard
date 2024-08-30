@@ -1,14 +1,10 @@
+import concurrent.futures
 from collections import defaultdict
 
-import requests
-from django.conf import settings
 from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
+from django.shortcuts import render, redirect
 
-from .decorators import require_github_username
 from .services.github_api import APIService
 
 
@@ -215,36 +211,44 @@ def language_statistics(request) :
     return render(request, 'language_statistics.html', context)
 
 
-def get_language_percentages_from_repos(repositories) :
+def get_language_percentages_from_repos(repositories):
     language_data = defaultdict(int)
     total_bytes = 0
 
-    for repo in repositories :
-        languages = APIService.get_repository_languages(repo['languages_url'])
-        for language, bytes in languages.items() :
-            language_data[language] += bytes
-            total_bytes += bytes
+    def fetch_languages(repo):
+        return APIService.get_repository_languages(repo['languages_url'])
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        results = executor.map(fetch_languages, repositories)
+        for languages in results:
+            for language, bytes in languages.items():
+                language_data[language] += bytes
+                total_bytes += bytes
 
     sorted_language_percentages = sorted(
         ((language, (bytes / total_bytes) * 100) for language, bytes in language_data.items()),
-        key=lambda item : item[1],
+        key=lambda item: item[1],
         reverse=True
     )
 
     return sorted_language_percentages
 
+def get_languages_activity_from_repos(repositories, github_username):
+    languages_activity = defaultdict(lambda: defaultdict(int))
 
-def get_languages_activity_from_repos(repositories, github_username) :
-    languages_activity = defaultdict(lambda : defaultdict(int))
-
-    for repo in repositories :
+    for repo in repositories:
         repo_languages_activity = APIService.get_committer_date_activity(repo['name'], github_username)
-        for language, monthly_data in repo_languages_activity.items() :
-            for date, lines in monthly_data.items() :
+        for language, monthly_data in repo_languages_activity.items():
+            for date, lines in monthly_data.items():
+                # Ensure that `lines` is an integer
+                try:
+                    lines = int(lines)
+                except ValueError:
+                    lines = 0  # Handle or log the error as needed
+
                 languages_activity[language][date] += lines
 
-    return {language : dict(dates) for language, dates in languages_activity.items()}
-
+    return {language: dict(dates) for language, dates in languages_activity.items()}
 
 def github_interactions(request) :
     github_username = request.session.get('github_username')

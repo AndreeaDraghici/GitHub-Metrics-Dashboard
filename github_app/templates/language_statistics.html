@@ -32,29 +32,44 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Prepare data for time-series chart
+        // Defer chart creation to avoid blocking page load
+        requestAnimationFrame(() => {
             const timeSeriesData = {{ languages_activity|safe }};
             const timeSeriesCtx = document.getElementById('timeSeriesChart').getContext('2d');
 
-            // Prepare labels and datasets
+            // Optimize label preparation by reducing redundant array operations
             const languages = Object.keys(timeSeriesData);
-            const labels = Array.from(new Set(languages.flatMap(lang => Object.keys(timeSeriesData[lang])))).sort();
-            const datasets = languages.map(language => ({
-                label: language,
-                data: labels.map(label => timeSeriesData[language][label] || 0),
-                borderColor: getRandomColor(),
-                backgroundColor: getRandomColor(0.2),
-                fill: true,
-            }));
+            const labelsSet = new Set();
 
+            languages.forEach(lang => {
+                Object.keys(timeSeriesData[lang]).forEach(date => labelsSet.add(date));
+            });
+
+            const labels = Array.from(labelsSet).sort();
+
+            // Prepare datasets for a bar chart
+            const datasets = languages.map(language => {
+                const data = labels.map(label => timeSeriesData[language][label] || 0);
+                const color = getRandomColor();
+                return {
+                    label: language,
+                    data: data,
+                    backgroundColor: color,
+                    borderColor: color,
+                    borderWidth: 1,
+                };
+            });
+
+            // Render the chart with optimized options
             new Chart(timeSeriesCtx, {
-                type: 'line',
+                type: 'bar', // Changed to 'bar' for better performance
                 data: {
                     labels: labels,
                     datasets: datasets,
                 },
                 options: {
                     responsive: true,
+                    animation: false, // Turn off animations for faster rendering
                     plugins: {
                         legend: {
                             display: true,
@@ -63,26 +78,29 @@
                     },
                     scales: {
                         x: {
+                            stacked: true, // Stack bars on x-axis
                             title: {
                                 display: true,
                                 text: 'Time'
                             }
                         },
                         y: {
+                            stacked: true, // Stack bars on y-axis for cumulative view
                             title: {
                                 display: true,
                                 text: 'Lines of Code'
-                            }
+                            },
+                            beginAtZero: true // Ensure the y-axis starts at 0
                         }
                     }
                 }
             });
-
+        });
+            // Random color generator for chart datasets
             function getRandomColor(alpha = 1) {
                 return `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${alpha})`;
             }
         });
-
     </script>
 
 </div>
