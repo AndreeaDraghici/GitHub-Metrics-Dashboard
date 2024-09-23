@@ -1,11 +1,12 @@
 from collections import defaultdict
 from datetime import datetime
-
 import requests
 from django.conf import settings
 
+from github_app.services.exceptions_manager import AuthenticationError, RateLimitError, GitHubAPIException, \
+    NotFoundError, ServerError
 
-# GitHub API service class
+
 class APIService :
     ENDPOINT_URL = "https://api.github.com"
 
@@ -19,6 +20,37 @@ class APIService :
             'Authorization' : f'token {settings.GITHUB_PERSONAL_ACCESS_TOKEN}',
             'Accept' : 'application/vnd.github.v3+json'
         }
+
+    @classmethod
+    def handle_response(cls, response, error_context="") :
+        """
+        Handles the HTTP response, raising appropriate exceptions for error statuses.
+
+        :param response: The HTTP response object
+        :param error_context: Additional context for the error message
+        :return: JSON data if the response is successful
+        """
+        if response.status_code == 200 or response.status_code == 201 or response.status_code == 204 :
+            if response.status_code == 204 :
+                return None  # No Content
+            return response.json()
+        elif response.status_code == 401 :
+            raise AuthenticationError(
+                f"Authentication failed: {response.status_code} - {response.json().get('message', '')}")
+        elif response.status_code == 403 :
+            if 'rate limit' in response.text.lower() :
+                raise RateLimitError(
+                    f"Rate limit exceeded: {response.status_code} - {response.json().get('message', '')}")
+            else :
+                raise GitHubAPIException(f"Forbidden: {response.status_code} - {response.json().get('message', '')}")
+        elif response.status_code == 404 :
+            raise NotFoundError(f"Resource not found: {response.status_code} - {response.json().get('message', '')}")
+        elif 400 <= response.status_code < 500 :
+            raise GitHubAPIException(f"Client error: {response.status_code} - {response.json().get('message', '')}")
+        elif 500 <= response.status_code < 600 :
+            raise ServerError(f"Server error: {response.status_code} - {response.json().get('message', '')}")
+        else :
+            raise GitHubAPIException(f"Unexpected error ({response.status_code}): {response.text}")
 
     @classmethod
     def get_user_repositories(cls, github_username, page=1, per_page=100) :
@@ -36,11 +68,7 @@ class APIService :
             'page' : page
         }
         response = requests.get(url, headers=cls.get_headers(), params=params)
-
-        if response.status_code != 200 :
-            raise Exception(f"Error fetching user repos: {response.status_code} - {response.text}")
-
-        return response.json()
+        return cls.handle_response(response, "fetching user repositories")
 
     @classmethod
     def get_user_repository(cls, github_username, repo_name) :
@@ -60,7 +88,7 @@ class APIService :
                 if repo['name'].lower() == repo_name.lower() :
                     return repo
             page += 1
-        return None
+        raise NotFoundError(f"Repository '{repo_name}' not found for user '{github_username}'.")
 
     @classmethod
     def get_repository_commits(cls, github_username, repo_name, page=1, per_page=100) :
@@ -79,11 +107,7 @@ class APIService :
             'page' : page
         }
         response = requests.get(url, headers=cls.get_headers(), params=params)
-
-        if response.status_code != 200 :
-            raise Exception(f"Error fetching repo commits: {response.status_code} - {response.text}")
-
-        return response.json()
+        return cls.handle_response(response, "fetching repository commits")
 
     @classmethod
     def get_repository_pull_requests(cls, github_username, repo_name, page=1, per_page=100) :
@@ -103,11 +127,7 @@ class APIService :
             'page' : page
         }
         response = requests.get(url, headers=cls.get_headers(), params=params)
-
-        if response.status_code != 200 :
-            raise Exception(f"Error fetching repo pull requests: {response.status_code} - {response.text}")
-
-        return response.json()
+        return cls.handle_response(response, "fetching repository pull requests")
 
     @classmethod
     def get_repository_issues(cls, github_username, repo_name, page=1, per_page=100) :
@@ -127,11 +147,7 @@ class APIService :
             'page' : page
         }
         response = requests.get(url, headers=cls.get_headers(), params=params)
-
-        if response.status_code != 200 :
-            raise Exception(f"Error fetching repo issues: {response.status_code} - {response.text}")
-
-        return response.json()
+        return cls.handle_response(response, "fetching repository issues")
 
     @classmethod
     def get_repository_languages(cls, repo_languages_url) :
@@ -142,11 +158,7 @@ class APIService :
         :return: Dictionary of languages and their bytes in JSON format
         """
         response = requests.get(repo_languages_url, headers=cls.get_headers())
-
-        if response.status_code != 200 :
-            raise Exception(f"Error fetching repo languages: {response.status_code} - {response.text}")
-
-        return response.json()
+        return cls.handle_response(response, "fetching repository languages")
 
     @classmethod
     def create_repository(cls, name, description="", private=False) :
@@ -156,7 +168,7 @@ class APIService :
         :param name: Name of the repository
         :param description: Description of the repository
         :param private: Boolean indicating if the repository should be private
-        :return: Response message indicating success or failure
+        :return: Success message
         """
         url = f"{cls.ENDPOINT_URL}/user/repos"
         data = {
@@ -165,11 +177,10 @@ class APIService :
             'private' : private,
         }
         response = requests.post(url, json=data, headers=cls.get_headers())
-
         if response.status_code == 201 :
             return 'Repository created successfully.'
         else :
-            return f'Error: {response.status_code} - {response.text}'
+            cls.handle_response(response, "creating repository")
 
     @classmethod
     def delete_repository(cls, repo_name, github_username) :
@@ -178,15 +189,14 @@ class APIService :
 
         :param repo_name: Name of the repository to delete
         :param github_username: GitHub username
-        :return: Response message indicating success or failure
+        :return: Success message
         """
         url = f"{cls.ENDPOINT_URL}/repos/{github_username}/{repo_name}"
         response = requests.delete(url, headers=cls.get_headers())
-
         if response.status_code == 204 :
             return 'Repository deleted successfully.'
         else :
-            return f'Error: {response.status_code} - {response.text}'
+            cls.handle_response(response, "deleting repository")
 
     @classmethod
     def get_user_information(cls, github_username) :
@@ -198,14 +208,17 @@ class APIService :
         """
         url = f"{cls.ENDPOINT_URL}/users/{github_username}"
         response = requests.get(url, headers=cls.get_headers())
-
-        if response.status_code != 200 :
-            raise Exception(f"Error fetching user info: {response.status_code} - {response.text}")
-
-        return response.json()
+        return cls.handle_response(response, "fetching user information")
 
     @classmethod
     def get_committer_date_activity(cls, repo_name, github_username) :
+        """
+        Analyzes the activity of different programming languages over time based on commit data.
+
+        :param repo_name: Name of the repository
+        :param github_username: GitHub username
+        :return: Nested dictionary with language activity per month
+        """
         params = {
             "per_page" : 100,
             "page" : 1
@@ -215,23 +228,30 @@ class APIService :
 
         while True :
             response = requests.get(commits_url, headers=cls.get_headers(), params=params)
-            commits = response.json()
+            try :
+                commits = cls.handle_response(response, "fetching commits for activity analysis")
+            except GitHubAPIException as e :
+                # Depending on your use case, you might want to log this error
+                raise GitHubAPIException(f"Failed to retrieve commits: {e}")
 
             if not commits :
                 break
 
             for commit in commits :
-                commit_date = commit['commit']['committer']['date']
-                commit_year_month = datetime.strptime(commit_date, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m")
+                commit_date_str = commit['commit']['committer']['date']
+                commit_date = datetime.strptime(commit_date_str, "%Y-%m-%dT%H:%M:%SZ")
+                commit_year_month = commit_date.strftime("%Y-%m")
 
-                # Fetch the language stats for the commit's date
+                # Fetch the language stats for the repository
                 languages_url = f"{cls.ENDPOINT_URL}/repos/{github_username}/{repo_name}/languages"
                 languages_response = requests.get(languages_url, headers=cls.get_headers())
-                languages = languages_response.json()
+                try :
+                    languages = cls.handle_response(languages_response, "fetching languages for activity analysis")
+                except GitHubAPIException as e :
+                    raise GitHubAPIException(f"Failed to retrieve languages: {e}")
 
-                for language, lines in languages.items() :
-                    # lines = int(lines)
-                    languages_activity[language][commit_year_month] += lines
+                for language, bytes_of_code in languages.items() :
+                    languages_activity[language][commit_year_month] += bytes_of_code
 
             # Move to the next page
             params["page"] += 1
