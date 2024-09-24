@@ -1,8 +1,15 @@
 # decorators.py
 
-from django.shortcuts import redirect
-from django.urls import reverse
 from django.http import HttpResponseForbidden
+
+from django.shortcuts import render
+from .services.github_api import (
+    AuthenticationError,
+    NotFoundError,
+    RateLimitError,
+    ServerError,
+    GitHubAPIException
+)
 
 
 def require_github_username(view_func) :
@@ -17,3 +24,29 @@ def require_github_username(view_func) :
         return view_func(request, *args, **kwargs)
 
     return _wrapped_view_func
+
+
+def handle_github_exceptions(view_func) :
+    """
+    Decorator to handle custom GitHub API exceptions and render appropriate error pages.
+    """
+
+    def wrapper(request, *args, **kwargs) :
+        try :
+            return view_func(request, *args, **kwargs)
+        except AuthenticationError as e :
+            return render(request, 'errors/api_error.html', {'error_message' : str(e)}, status=401)
+        except NotFoundError as e :
+            return render(request, 'errors/api_error.html', {'error_message' : str(e)}, status=404)
+        except RateLimitError as e :
+            return render(request, 'errors/api_error.html', {'error_message' : str(e)}, status=429)
+        except ServerError as e :
+            return render(request, 'errors/api_error.html', {'error_message' : str(e)}, status=500)
+        except GitHubAPIException as e :
+            return render(request, 'errors/api_error.html', {'error_message' : str(e)}, status=400)
+        except Exception as e :
+            # Optionally log the exception here
+            return render(request, 'errors/api_error.html', {'error_message' : 'An unexpected error occurred.'},
+                          status=500)
+
+    return wrapper

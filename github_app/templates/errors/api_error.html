@@ -1,0 +1,61 @@
+<!-- templates/errors/api_error.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub API Error</title>
+    <style>
+        body {
+            background-color: #f7f7f7;
+            text-align: center;
+            padding: 80px 40px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+        .error-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+        }
+        h1 {
+            font-size: 60px;
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 20px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        a {
+            font-size: 20px;
+            color: #3498db;
+            text-decoration: none;
+            border-bottom: 2px solid #3498db;
+            transition: color 0.3s ease, border-color 0.3s ease;
+        }
+        a:hover {
+            color: #2980b9;
+            border-color: #2980b9;
+        }
+        .emoji {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+    </style>
+</head>
+<body>
+<div class="error-container">
+    <div class="emoji">🔧</div>
+    <h1>Oops! Something went wrong.</h1>
+    <p>It seems there’s an issue with GitHub API right now. Don’t worry, we’re on it!</p>
+    <p>{{ error_message }}</p>
+    <p>Try refreshing the page or <a href="{% url 'register' %}">head back home</a> while we fix things.</p>
+    <p>Thanks for your patience! 😊</p>
+</div>
+</body>
+</html>

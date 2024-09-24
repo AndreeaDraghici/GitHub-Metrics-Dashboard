@@ -47,6 +47,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'github_app.middleware.GitHubAPIExceptionMiddleware',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -111,13 +112,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 WEBSITE_ROOT = ""
-# Direcția către fișierele statice (CSS, JavaScript, imagini)
+
 STATIC_URL = f"{WEBSITE_ROOT}/static/"
 
-# Directorul în care vor fi colectate toate fișierele statice pentru deploy
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Directorul unde sunt fișierele statice pentru dezvoltare
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
@@ -134,3 +133,9 @@ LOGOUT_REDIRECT_URL = '/'
 from decouple import config
 
 GITHUB_PERSONAL_ACCESS_TOKEN = config('GITHUB_PERSONAL_ACCESS_TOKEN')
+
+##### CONFIGURATION TO INCLUDE CUSTOM ERRORS ####
+
+# Error handling settings
+handler404 = 'github_app.views.custom_404'
+handler500 = 'github_app.views.custom_500'

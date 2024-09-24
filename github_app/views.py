@@ -1,20 +1,26 @@
 import concurrent.futures
+import concurrent.futures
 from collections import defaultdict
 
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 
+from .decorators import handle_github_exceptions  # Import the decorator
 from .services.github_api import APIService
 
 
+# your_app_name/views.py
+
+
+@handle_github_exceptions
 def github_login(request) :
     # Clear session data on login page to ensure a fresh start
     request.session.flush()
     return render(request, 'login.html')
 
 
-# @login_required
+@handle_github_exceptions
 def register(request) :
     if request.method == 'POST' :
         github_username = request.POST.get('github_username')
@@ -28,7 +34,7 @@ def register(request) :
     return render(request, 'register.html')
 
 
-# @login_required
+@handle_github_exceptions
 def github_callback(request) :
     github_username = request.session.get('github_username')
     if not github_username :
@@ -44,7 +50,7 @@ def github_callback(request) :
     return redirect('profile')
 
 
-# @login_required
+@handle_github_exceptions
 def profile(request) :
     github_username = request.session.get('github_username')
     if not github_username :
@@ -60,8 +66,7 @@ def profile(request) :
     return render(request, 'profile.html', context)
 
 
-# @login_required
-# @require_github_username
+@handle_github_exceptions
 def repo_detail(request, repo_name) :
     github_username = request.session.get('github_username')
     if not github_username :
@@ -74,8 +79,7 @@ def repo_detail(request, repo_name) :
     return render(request, 'repo_detail.html', context)
 
 
-# @login_required
-# @require_github_username
+@handle_github_exceptions
 def contribution_stats(request) :
     github_username = request.session.get('github_username')
     if not github_username :
@@ -125,8 +129,7 @@ def contribution_stats(request) :
     return render(request, 'contribution_stats.html', context)
 
 
-# @login_required
-# @require_github_username
+@handle_github_exceptions
 def activity_stats_page(request) :
     github_username = request.session.get('github_username')
     if not github_username :
@@ -188,6 +191,7 @@ def activity_stats_page(request) :
     return render(request, 'activity_stats_page.html', stats)
 
 
+@handle_github_exceptions
 def language_statistics(request) :
     github_username = request.session.get('github_username')
 
@@ -211,45 +215,7 @@ def language_statistics(request) :
     return render(request, 'language_statistics.html', context)
 
 
-def get_language_percentages_from_repos(repositories):
-    language_data = defaultdict(int)
-    total_bytes = 0
-
-    def fetch_languages(repo):
-        return APIService.get_repository_languages(repo['languages_url'])
-
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        results = executor.map(fetch_languages, repositories)
-        for languages in results:
-            for language, bytes in languages.items():
-                language_data[language] += bytes
-                total_bytes += bytes
-
-    sorted_language_percentages = sorted(
-        ((language, (bytes / total_bytes) * 100) for language, bytes in language_data.items()),
-        key=lambda item: item[1],
-        reverse=True
-    )
-
-    return sorted_language_percentages
-
-def get_languages_activity_from_repos(repositories, github_username):
-    languages_activity = defaultdict(lambda: defaultdict(int))
-
-    for repo in repositories:
-        repo_languages_activity = APIService.get_committer_date_activity(repo['name'], github_username)
-        for language, monthly_data in repo_languages_activity.items():
-            for date, lines in monthly_data.items():
-                # Ensure that `lines` is an integer
-                try:
-                    lines = int(lines)
-                except ValueError:
-                    lines = 0  # Handle or log the error as needed
-
-                languages_activity[language][date] += lines
-
-    return {language: dict(dates) for language, dates in languages_activity.items()}
-
+@handle_github_exceptions
 def github_interactions(request) :
     github_username = request.session.get('github_username')
     if not github_username :
@@ -267,6 +233,7 @@ def github_interactions(request) :
     return render(request, 'github_interactions.html', {'repositories' : repositories})
 
 
+@handle_github_exceptions
 def create_repo(request) :
     github_username = request.session.get('github_username')
     if not github_username :
@@ -279,9 +246,13 @@ def create_repo(request) :
     # Pass only the parameters expected by the create_repository method
     message = APIService.create_repository(repo_name, description, private)
 
-    return render(request, 'github_interactions.html', {'modal_message' : message})
+    # Fetch updated list of repositories after creation
+    repositories = APIService.get_user_repositories(github_username)
+
+    return render(request, 'github_interactions.html', {'modal_message' : message, 'repositories' : repositories})
 
 
+@handle_github_exceptions
 def delete_repo(request) :
     github_username = request.session.get('github_username')
     if not github_username :
@@ -292,3 +263,52 @@ def delete_repo(request) :
     # Fetch updated list of repositories
     repositories = APIService.get_user_repositories(github_username)
     return render(request, 'github_interactions.html', {'modal_message' : message, 'repositories' : repositories})
+
+
+def get_language_percentages_from_repos(repositories) :
+    language_data = defaultdict(int)
+    total_bytes = 0
+
+    def fetch_languages(repo) :
+        return APIService.get_repository_languages(repo['languages_url'])
+
+    with concurrent.futures.ThreadPoolExecutor() as executor :
+        results = executor.map(fetch_languages, repositories)
+        for languages in results :
+            for language, bytes in languages.items() :
+                language_data[language] += bytes
+                total_bytes += bytes
+
+    sorted_language_percentages = sorted(
+        ((language, (bytes / total_bytes) * 100) for language, bytes in language_data.items()),
+        key=lambda item : item[1],
+        reverse=True
+    )
+
+    return sorted_language_percentages
+
+
+def get_languages_activity_from_repos(repositories, github_username) :
+    languages_activity = defaultdict(lambda : defaultdict(int))
+
+    for repo in repositories :
+        repo_languages_activity = APIService.get_committer_date_activity(repo['name'], github_username)
+        for language, monthly_data in repo_languages_activity.items() :
+            for date, lines in monthly_data.items() :
+                # Ensure that `lines` is an integer
+                try :
+                    lines = int(lines)
+                except ValueError :
+                    lines = 0  # Handle or log the error as needed
+
+                languages_activity[language][date] += lines
+
+    return {language : dict(dates) for language, dates in languages_activity.items()}
+
+
+def custom_404(request, exception) :
+    return render(request, 'errors/404.html', status=404)
+
+
+def custom_500(request) :
+    return render(request, 'errors/500.html', status=500)

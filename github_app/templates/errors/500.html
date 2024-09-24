@@ -1,0 +1,66 @@
+<!-- templates/errors/500.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Something Went Wrong (500)</title>
+    <style>
+        body {
+            background-color: #f9f9f9;
+            text-align: center;
+            padding: 80px 40px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #444;
+        }
+        h1 {
+            font-size: 90px;
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+        h2 {
+            font-size: 30px;
+            color: #555;
+            margin-bottom: 30px;
+        }
+        p {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #666;
+        }
+        a {
+            font-size: 20px;
+            color: #3498db;
+            text-decoration: none;
+            border-bottom: 1px solid #3498db;
+            padding-bottom: 2px;
+            transition: color 0.3s ease, border-color 0.3s ease;
+        }
+        a:hover {
+            color: #2980b9;
+            border-color: #2980b9;
+        }
+        .error-details {
+            margin-top: 40px;
+            font-size: 18px;
+            color: #777;
+        }
+        .emoji {
+            font-size: 100px;
+            margin-bottom: 20px;
+        }
+
+    </style>
+</head>
+<body>
+<div class="emoji">😔</div>
+<h1>500</h1>
+<h2>Oh no! Something went wrong on our end.</h2>
+<p>It looks like we're having a bit of trouble processing your request.</p>
+<p>Don't worry, we're on it and will have things back up soon!</p>
+<p><a href="{% url 'register' %}">Go back to Home</a> or try refreshing the page in a little while.</p>
+<div class="error-details">
+    <p>Thank you for your patience. 💖</p>
+</div>
+</body>
+</html>
