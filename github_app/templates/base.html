@@ -8,6 +8,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}My GitHub App{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'style.css' %}">
+    <style>
+        footer {
+            background-color: #f9f9f9;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #ccc;
+            margin-top: 40px;
+        }
+        .footer-content {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #555;
+        }
+        .footer-content a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .footer-content a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
 <div class="navbar">
@@ -16,12 +36,21 @@
     <a href="{% url 'activity_stats_page' %}">Repositories Activity Status</a>
     <a href="{% url 'contribution_stats' %}">Repositories Contribution Status</a>
     <a href="{% url 'language_statistics' %}">Programming Language Statistics</a>
-     <a href="{% url 'github_interactions' %}">Github Interaction</a>
+    <a href="{% url 'github_interactions' %}">Github Interaction</a>
 </div>
 
 <div class="container main-content">
     {% block content %}
     {% endblock %}
 </div>
+
+<footer>
+    <div class="footer-content">
+        <p>✨ Crafted with 💻 and a generous dose of ☕ by Andreea Draghici.</p>
+        <p>“If coding were easy, they’d call it your mom!” 😂</p>
+        <p>© {{ current_year }} All rights reserved. 🔒</p>
+    </div>
+</footer>
+
 </body>
 </html>

@@ -50,17 +50,44 @@
             margin-bottom: 20px;
         }
 
+        footer {
+            background-color: #f9f9f9;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #ccc;
+            margin-top: 40px;
+        }
+        .footer-content {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #555;
+        }
+        .footer-content a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .footer-content a:hover {
+            text-decoration: underline;
+        }
+
     </style>
 </head>
 <body>
 <div class="emoji">😔</div>
-<h1>500</h1>
-<h2>Oh no! Something went wrong on our end.</h2>
-<p>It looks like we're having a bit of trouble processing your request.</p>
-<p>Don't worry, we're on it and will have things back up soon!</p>
-<p><a href="{% url 'register' %}">Go back to Home</a> or try refreshing the page in a little while.</p>
+    <h1>500</h1>
+    <h2>Oh no! Something went wrong on our end.</h2>
+    <p>It looks like we're having a bit of trouble processing your request.</p>
+    <p>Don't worry, we're on it and will have things back up soon!</p>
+    <p><a href="{% url 'register' %}">Go back to Home</a> or try refreshing the page in a little while.</p>
 <div class="error-details">
     <p>Thank you for your patience. 💖</p>
 </div>
+<footer>
+    <div class="footer-content">
+        <p>✨ Crafted with 💻 and a generous dose of ☕ by Andreea Draghici.</p>
+        <p>“If coding were easy, they’d call it your mom!” 😂</p>
+        <p>© {{ current_year }} All rights reserved. 🔒</p>
+    </div>
+</footer>
+
 </body>
 </html>

@@ -46,6 +46,25 @@
             margin-bottom: 20px;
         }
 
+        footer {
+            background-color: #f9f9f9;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #ccc;
+            margin-top: 40px;
+        }
+        .footer-content {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #555;
+        }
+        .footer-content a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .footer-content a:hover {
+            text-decoration: underline;
+        }
+
     </style>
 </head>
 <body>
@@ -57,5 +76,13 @@
     <p>Try refreshing the page or <a href="{% url 'register' %}">head back home</a> while we fix things.</p>
     <p>Thanks for your patience! 😊</p>
 </div>
+<footer>
+    <div class="footer-content">
+        <p>✨ Crafted with 💻 and a generous dose of ☕ by Andreea Draghici.</p>
+        <p>“If coding were easy, they’d call it your mom!” 😂</p>
+        <p>© {{ current_year }} All rights reserved. 🔒</p>
+    </div>
+</footer>
+
 </body>
 </html>
