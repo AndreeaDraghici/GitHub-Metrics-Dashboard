@@ -16,11 +16,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.shortcuts import redirect
-
+from django.conf import settings
+from django.conf.urls.static import static
 from github_app.admin import custom_admin_site
+
+# Error handling settings
+handler404 = 'github_app.views.custom_404'
+handler500 = 'github_app.views.custom_500'
 
 urlpatterns = [
     path('admin/', custom_admin_site.urls),
     path('', include('github_app.urls')),
 ]
+if settings.DEBUG :
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

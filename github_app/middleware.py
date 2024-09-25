@@ -40,11 +40,11 @@ class GitHubAPIExceptionMiddleware :
         except AuthenticationError as e :
             return render(request, 'errors/api_error.html', {'error_message' : str(e)}, status=401)
         except NotFoundError as e :
-            return render(request, 'errors/api_error.html', {'error_message' : str(e)}, status=404)
+            return render(request, 'errors/404.html', {'error_message' : str(e)}, status=404)
         except RateLimitError as e :
             return render(request, 'errors/api_error.html', {'error_message' : str(e)}, status=429)
         except ServerError as e :
-            return render(request, 'errors/api_error.html', {'error_message' : str(e)}, status=500)
+            return render(request, 'errors/500.html', {'error_message' : str(e)}, status=500)
         except GitHubAPIException as e :
             return render(request, 'errors/api_error.html', {'error_message' : str(e)}, status=400)
         except Exception as e :
